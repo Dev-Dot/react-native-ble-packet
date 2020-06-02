@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import <openssl/dh.h>
+#import "dh.h"
 
 @interface RSAObject : NSObject
 
