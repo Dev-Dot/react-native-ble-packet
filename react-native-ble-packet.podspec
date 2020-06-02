@@ -23,7 +23,7 @@ Pod::Spec.new do |s|
 
   s.dependency "React"
   s.dependency "BabyBluetooth"
-  s.dependency "OpenSSL"
+  s.dependency "OpenSSL", :git => 'https://github.com/thejeff77/OpenSSL-Pod.git', :tag => '1.1.104'
   # ...
   # s.dependency "..."
 end
