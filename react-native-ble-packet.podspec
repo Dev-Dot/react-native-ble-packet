@@ -23,7 +23,6 @@ Pod::Spec.new do |s|
 
   s.dependency "React"
   s.dependency "BabyBluetooth"
-  s.dependency "OpenSSL"
   # ...
   # s.dependency "..."
 end
