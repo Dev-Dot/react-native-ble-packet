@@ -6,10 +6,8 @@
 #import "PacketCommand.h"
 
 #import "UUID.h"
-#import "BLEDevice.h"
 #import "NSDate+Datestring.h"
 #import "OpmodeObject.h"
-#import "RSAObject.h"
 #import "BLEdataFunc.h"
 // #import "LocalNotifyFunc.h"
 // #import "ConfigureVC.h"
@@ -25,11 +23,6 @@
 #define ConnectedDeviceNameKey  @"ConnectedDeviceName"
 
 #define AutoConnect  0
-
-typedef enum {
-    ForegroundMode=0,
-    backgroundMode,
-}ActiveMode;
 
 typedef enum {
     ReconnecttimeoutAction=0,

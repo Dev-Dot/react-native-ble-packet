@@ -1,4 +1,12 @@
 #import <React/RCTBridgeModule.h>
+#import <CoreBluetooth/CoreBluetooth.h>
+#import "BLEDevice.h"
+#import "RSAObject.h"
+
+typedef enum {
+    ForegroundMode=0,
+    backgroundMode,
+}ActiveMode;
 
 @interface BlePacket : NSObject <RCTBridgeModule>
 typedef enum {

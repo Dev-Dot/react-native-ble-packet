@@ -184,7 +184,7 @@
     dataByte[2]=sequence;         //序列
     dataByte[3]=0x01;             //data length
     dataByte[4]=opmode;             //opmode null
-    zwjLog(@"Sequence=%d",sequence);
+    // zwjLog(@"Sequence=%d",sequence);
     NSMutableData *data=[NSMutableData dataWithBytes:&dataByte length:sizeof(dataByte)];
     //加校验
     [data appendData:[self GetCRCWithData:data]];
@@ -223,7 +223,7 @@
     dataByte[1]=0x01;             //不加密,无校验,手机发,没有后续包,无ACK
     dataByte[2]=Sequence;         //序列
     //dataByte[3]=0x00;           //checksum
-    zwjLog(@"Sequence=%d",Sequence);
+    // zwjLog(@"Sequence=%d",Sequence);
     NSMutableData *data=[NSMutableData dataWithBytes:&dataByte length:sizeof(dataByte)];
     return data;
 }
@@ -235,7 +235,7 @@
     dataByte[1]=0x01;             //不加密,无校验,手机发,没有后续包,无ACK
     dataByte[2]=Sequence;         //序列
     //dataByte[3]=0x00;           //checksum
-    zwjLog(@"Sequence=%d",Sequence);
+    // zwjLog(@"Sequence=%d",Sequence);
     NSMutableData *data=[NSMutableData dataWithBytes:&dataByte length:sizeof(dataByte)];
     return data;
 }
@@ -248,7 +248,7 @@
     dataByte[1]=0x01;             //不加密,无校验,手机发,没有后续包,无ACK
     dataByte[2]=Sequence;         //序列
     //dataByte[3]=0x00;           //checksum
-    zwjLog(@"Sequence=%d",Sequence);
+    // zwjLog(@"Sequence=%d",Sequence);
     NSMutableData *data=[NSMutableData dataWithBytes:&dataByte length:sizeof(dataByte)];
     return data;
 }

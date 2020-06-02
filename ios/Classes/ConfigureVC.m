@@ -371,7 +371,7 @@ typedef enum
 
 -(void)okBtnClick
 {
-    zwjLog(@"点击事件");
+    // zwjLog(@"点击事件");
     
     if (self.displaymode==NullOpmode) {
        
@@ -434,7 +434,7 @@ typedef enum
             object.Security=WPA_WPA2_PSK;
         }else
         {
-            zwjLog(@"异常");
+            // zwjLog(@"异常");
             return;
         }
         if ([self.delegate respondsToSelector:@selector(SetOpmode:Object:openmode:)]) {
@@ -486,7 +486,7 @@ typedef enum
             object.Security=WPA_WPA2_PSK;
         }else
         {
-            zwjLog(@"异常");
+            // zwjLog(@"异常");
             return;
         }
         object.WifiSSid=self.WifiSSidTextField.text;
@@ -505,7 +505,7 @@ typedef enum
     
     }else
     {
-        zwjLog(@"异常");
+        // zwjLog(@"异常");
     }
 }
 
@@ -658,7 +658,7 @@ typedef enum
             
         }else
         {
-            zwjLog(@"Error");
+            // zwjLog(@"Error");
         }
         
     }else if (self.selectindex==SecurityIndex)
@@ -681,7 +681,7 @@ typedef enum
         [self.SoftAPSMax_ConnectBtn setTitle:str forState:UIControlStateNormal];
     }else
     {
-        zwjLog(@"异常");
+        // zwjLog(@"异常");
         
     }
 
@@ -713,7 +713,7 @@ typedef enum
 -(void)dealloc
 {
     self.delegate=nil;
-    zwjLog(@"%s",__func__);
+    // zwjLog(@"%s",__func__);
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillShowNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
     self.SoftAPSSidTextfield=nil;
