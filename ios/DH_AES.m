@@ -7,7 +7,6 @@
 //
 
 #import "DH_AES.h"
-#import "Prefix.pch"
 #import <openssl/rsa.h>
 #import <openssl/pem.h>
 #import <openssl/dh.h>

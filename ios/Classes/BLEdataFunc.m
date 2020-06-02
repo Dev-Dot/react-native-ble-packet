@@ -8,7 +8,6 @@
 
 #import "BLEdataFunc.h"
 #import "BLEDevice.h"
-#import "Prefix.pch"
 
 @implementation BLEdataFunc
 

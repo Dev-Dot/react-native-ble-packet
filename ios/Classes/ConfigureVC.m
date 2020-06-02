@@ -8,7 +8,6 @@
 
 #import "ConfigureVC.h"
 #import "UIColor+Hex.h"
-#import "Prefix.pch"
 #import "PickerChoiceView.h"
 #import "HUDTips.h"
 #import "OpmodeObject.h"

@@ -14,8 +14,6 @@
 // #import "LocalNotifyFunc.h"
 // #import "ConfigureVC.h"
 
-#import "Prefix.pch"
-
 #define filterBLEname   @"BLUFI_"
 #define SCANTIME        20
 #define ConnectTime     2*60
@@ -25,6 +23,8 @@
 
 #define ConnectedDeviceKey  @"ConnectedDevice"
 #define ConnectedDeviceNameKey  @"ConnectedDeviceName"
+
+#define AutoConnect  0
 
 typedef enum {
     ForegroundMode=0,
