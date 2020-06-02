@@ -8,13 +8,13 @@
 
 #import "DH_AES.h"
 #import "Prefix.pch"
-#import "rsa.h"
-#import "pem.h"
-#import "dh.h"
-#import "bn.h"
+#import <openssl/rsa.h>
+#import <openssl/pem.h>
+#import <openssl/dh.h>
+#import <openssl/bn.h>
 #import "PacketCommand.h"
-#import "aes.h"
-#import "md5.h"
+#import <openssl/aes.h>
+#import <openssl/md5.h>
 
 @implementation DH_AES
 
