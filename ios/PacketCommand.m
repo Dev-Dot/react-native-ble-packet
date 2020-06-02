@@ -7,7 +7,7 @@
 //
 
 #import "PacketCommand.h"
-#import "Prefix.pch"
+#import "utils/Prefix.pch"
 #import "RSAObject.h"
 #import "DH_AES.h"
 

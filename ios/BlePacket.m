@@ -1,33 +1,74 @@
 #import "BlePacket.h"
+
 #import <React/RCTLog.h>
 #import "BabyBluetooth.h"
+#import "PacketCommand.h"
+
+#import "UUID.h"
+#import "BLEDevice.h"
+#import "NSDate+Datestring.h"
+#import "OpmodeObject.h"
+#import "RSAObject.h"
+#import "BLEdataFunc.h"
+// #import "LocalNotifyFunc.h"
+// #import "ConfigureVC.h"
+
+#import "utils/Prefix.pch"
+
+#define filterBLEname   @"BLUFI_"
+#define SCANTIME        20
+#define ConnectTime     2*60
+#define ReconnectTime   5*60
+//指令超时时间
+#define CommandBtnTimeout 30
+
+#define ConnectedDeviceKey  @"ConnectedDevice"
+#define ConnectedDeviceNameKey  @"ConnectedDeviceName"
+
+typedef enum {
+    ForegroundMode=0,
+    backgroundMode,
+}ActiveMode;
+
+typedef enum {
+    ReconnecttimeoutAction=0,
+    ConnectingAction,
+    DisconnectAction,
+    DeviceoverAction,
+    CancelreconnectAction,
+    StartSensorAction,
+    DisconnectBLE,
+    ClearData,
+}AlertActionState;
 
 @implementation BlePacket
 
 BabyBluetooth *baby;
+//蓝牙状态
+//BleState blestate;
 
 RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(init: (RCTResponseSenderBlock)callback)
 {
-	RCTLog(@"Init...")
-	// Initialize the Bluetooth BabyBluetooth library
-	baby=[BabyBluetooth shareBabyBluetooth];
-	// Set up Bluetooth delegation
-	[self BleDelegate];
+    RCTLog(@"Init...");
+    // Initialize the Bluetooth BabyBluetooth library
+    baby=[BabyBluetooth shareBabyBluetooth];
+    // Set up Bluetooth delegation
+    [self BleDelegate];
 }
 
 RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
 {
-	RCTLog(@"scanning...");
-	baby.scanForPeripherals().begin();
+    RCTLog(@"scanning...");
+    baby.scanForPeripherals().begin();
 
   // NSArray *devices = []
   // if (devices) {
-  // 	RCTLog(@"scan: RESOLVE")
+  //    RCTLog(@"scan: RESOLVE")
   //   resolve(devices);
   // } else {
-  // 	RCTLog(@"scan: REJECT")
+  //    RCTLog(@"scan: REJECT")
   //   // NSError *error = 
   //   reject(@"no_devices", @"There were no devices", error);
   // }
@@ -52,33 +93,33 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
     __weak typeof(baby) weakbaby = baby;
     __weak typeof(self) weakself =self;
     //判断手机蓝牙状态
-    // [baby setBlockOnCentralManagerDidUpdateState:^(CBCentralManager *central) {
-    //     //检测蓝牙状态
-    //     if (central.state==CBCentralManagerStatePoweredOn) {
-    //         //Log(@"蓝牙已打开");
-    //         weakself.blestate=BleStatePowerOn;
+     [baby setBlockOnCentralManagerDidUpdateState:^(CBCentralManager *central) {
+         //检测蓝牙状态
+         if (central.state==CBCentralManagerStatePoweredOn) {
+             //Log(@"蓝牙已打开");
+             weakself.blestate=BleStatePowerOn;
             
-    //         NSString *UUIDStr=[[NSUserDefaults standardUserDefaults] objectForKey:ConnectedDeviceKey];
-    //         if (UUIDStr && AutoConnect) {
-    //             CBPeripheral *peripheral=[weakbaby retrievePeripheralWithUUIDString:UUIDStr];
-    //             [weakself connect:peripheral];
-    //             weakself.blestate=BleStateConnecting;
-    //             BLEDevice *device=[[BLEDevice alloc]init];
-    //             device.Peripheral=peripheral;
-    //             device.name=[[NSUserDefaults standardUserDefaults] objectForKey:ConnectedDeviceNameKey];
-    //             weakself.currentdevice=device;
-    //         }
-    //     }
-    //     if(central.state==CBCentralManagerStateUnsupported)
-    //     {
-    //         //Log(@"该设备不支持蓝牙BLE");
-    //         weakself.blestate=BleStateUnknown;
-    //     }
-    //     if (central.state==CBCentralManagerStatePoweredOff) {
-    //         //Log(@"蓝牙已关闭");
-    //         weakself.blestate=BleStatePoweroff;
-    //     }
-    // }];
+             NSString *UUIDStr=[[NSUserDefaults standardUserDefaults] objectForKey:ConnectedDeviceKey];
+             if (UUIDStr && AutoConnect) {
+                 CBPeripheral *peripheral=[weakbaby retrievePeripheralWithUUIDString:UUIDStr];
+                 [weakself connect:peripheral];
+                 weakself.blestate=BleStateConnecting;
+                 BLEDevice *device=[[BLEDevice alloc]init];
+                 device.Peripheral=peripheral;
+                 device.name=[[NSUserDefaults standardUserDefaults] objectForKey:ConnectedDeviceNameKey];
+                 weakself.currentdevice=device;
+             }
+         }
+         if(central.state==CBCentralManagerStateUnsupported)
+         {
+             //Log(@"该设备不支持蓝牙BLE");
+             weakself.blestate=BleStateUnknown;
+         }
+         if (central.state==CBCentralManagerStatePoweredOff) {
+             //Log(@"蓝牙已关闭");
+             weakself.blestate=BleStatePoweroff;
+         }
+     }];
 
     // //搜索蓝牙
     // [baby setBlockOnDiscoverToPeripherals:^(CBCentralManager *central, CBPeripheral *peripheral, NSDictionary *advertisementData, NSNumber *RSSI) {
@@ -307,5 +348,49 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
     // }];
 }
 
+/**
+ *  直连
+ *
+ *  @param peripheral 要连接的蓝牙设备
+ */
+-(void)connect:(CBPeripheral *)peripheral
+{
+    baby.having(peripheral).connectToPeripherals().discoverServices().discoverCharacteristics().begin();
+}
+//断开自动重连
+-(void)AutoReconnect:(CBPeripheral *)peripheral
+{
+    [baby AutoReconnect:peripheral];
+}
+//删除自动重连
+- (void)AutoReconnectCancel:(CBPeripheral *)peripheral;
+{
+    [baby AutoReconnectCancel:peripheral];
+}
+
+/**
+ *  断开连接
+ */
+-(void)Disconnect:(CBPeripheral *)Peripheral
+{
+    self.APPCancelConnect=YES;
+    BLEDevice *device = self.bleDevicesSaveDic[Peripheral.identifier.UUIDString];
+    if (device.isConnected) {
+        //取消某个连接
+        [baby cancelPeripheralConnection:Peripheral];
+        self.blestate=BleStateDisconnect;
+    }
+    
+}
+//取消所有连接
+-(void)CancelAllConnect
+{
+    if([baby findConnectedPeripherals].count>0)
+    {
+        self.APPCancelConnect=YES;
+        //断开所有蓝牙连接
+        [baby cancelAllPeripheralsConnection];
+    }
+}
 
 @end
