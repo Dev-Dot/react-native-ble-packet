@@ -80,17 +80,17 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
 
 
 /**
- *  蓝牙代理
+ *  Bluetooth proxy
  */
 -(void)BleDelegate
 {
     __weak typeof(baby) weakbaby = baby;
     __weak typeof(self) weakself =self;
-    //判断手机蓝牙状态
+    // Determine the Bluetooth status of the phone
      [baby setBlockOnCentralManagerDidUpdateState:^(CBCentralManager *central) {
-         //检测蓝牙状态
+         // Check Bluetooth status
          if (central.state==CBCentralManagerStatePoweredOn) {
-             //Log(@"蓝牙已打开");
+             Log(@"Bluetooth is on");
              weakself.blestate=BleStatePowerOn;
             
              NSString *UUIDStr=[[NSUserDefaults standardUserDefaults] objectForKey:ConnectedDeviceKey];
@@ -106,283 +106,252 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
          }
          if(central.state==CBCentralManagerStateUnsupported)
          {
-             //Log(@"该设备不支持蓝牙BLE");
+             //Log(@"The device does not support Bluetooth BLE");
              weakself.blestate=BleStateUnknown;
          }
          if (central.state==CBCentralManagerStatePoweredOff) {
-             //Log(@"蓝牙已关闭");
+             Log(@"Bluetooth is off");
              weakself.blestate=BleStatePoweroff;
          }
      }];
 
-    // //搜索蓝牙
-    // [baby setBlockOnDiscoverToPeripherals:^(CBCentralManager *central, CBPeripheral *peripheral, NSDictionary *advertisementData, NSNumber *RSSI) {
-    //     //zwjLog(@"搜索到了设备:%@,%@",peripheral.name,advertisementData);
-    //     //将扫描到的设备添加到数组中
-    //     //NSString *serialnumber=[BLEdataFunc GetSerialNumber:advertisementData];
-    //     //NSString *name=[NSString stringWithFormat:@"%@%@",peripheral.name,serialnumber];
-    //     NSString *name=[NSString stringWithFormat:@"%@",peripheral.name];
-    //     if (![BLEdataFunc isAleadyExist:name BLEDeviceArray:weakself.BLEDeviceArray])
-    //     {
-    //         BLEDevice *device=[[BLEDevice alloc]init];
-    //         device.name=name;
-    //         device.Peripheral=peripheral;
-    //         device.uuidBle = peripheral.identifier.UUIDString;
-    //         [weakself.BLEDeviceArray addObject:device];
-    //         weakself.bleDevicesSaveDic[device.uuidBle] = device;
+    //搜索蓝牙
+    [baby setBlockOnDiscoverToPeripherals:^(CBCentralManager *central, CBPeripheral *peripheral, NSDictionary *advertisementData, NSNumber *RSSI) {
+        RCTLog(@"Device found:%@,%@",peripheral.name,advertisementData);
+        //Add the scanned device to the array
+        //NSString *serialnumber=[BLEdataFunc GetSerialNumber:advertisementData];
+        //NSString *name=[NSString stringWithFormat:@"%@%@",peripheral.name,serialnumber];
+        NSString *name=[NSString stringWithFormat:@"%@",peripheral.name];
+        if (![BLEdataFunc isAleadyExist:name BLEDeviceArray:weakself.BLEDeviceArray])
+        {
+            BLEDevice *device=[[BLEDevice alloc]init];
+            device.name=name;
+            device.Peripheral=peripheral;
+            device.uuidBle = peripheral.identifier.UUIDString;
+            [weakself.BLEDeviceArray addObject:device];
+            weakself.bleDevicesSaveDic[device.uuidBle] = device;
 
-    //         if (weakself.popview) {
-    //             weakself.popview.dataArray=weakself.BLEDeviceArray;
-    //         }
-    //         else if (!weakself.popview && weakself.BLEDeviceArray.count==1)
-    //         {
-    //             weakself.popview=[weakself PopScanViewWithTitle:NSLocalizedString(@"scaning", nil)];
-    //         }
+        }
+    }];
+    
+    // Set scan filter
+    [baby setFilterOnDiscoverPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI)
+     {
+         if ([peripheralName hasPrefix:filterBLEname])
+         {
+             return YES;
+         }
+         return NO;
+     }];
+    
+    // Set connection filter
+    [baby setFilterOnConnectToPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI) {
+        
+        if ([peripheralName hasPrefix:filterBLEname]) {
+            //isFirst=NO;
+            RCTLog(@"Ready to connect");
+            weakself.blestate=BleStateConnecting;
+            return YES;
+        }
+        return NO;
+    }];
 
-    //     }
-    // }];
-    
-    // //设置扫描过滤器
-    // [baby setFilterOnDiscoverPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI)
-    //  {
-    //      if ([peripheralName hasPrefix:filterBLEname])
-    //      {
-    //          return YES;
-    //      }
-    //      return NO;
-    //  }];
-    
-    // //设置连接过滤器
-    // [baby setFilterOnConnectToPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI) {
+    //connection succeeded
+    [baby setBlockOnConnected:^(CBCentralManager *central, CBPeripheral *peripheral) {
+        RCTLog(@"Device '%@': connection succeeded",peripheral.name);
+        BLEDevice *device = weakself.bleDevicesSaveDic[peripheral.identifier.UUIDString];
+        device.isConnected = YES;
+        //Cancel the auto-reconnect function (you must clear the auto-reconnect after successful connection, otherwise it will crash)
+        [weakself AutoReconnectCancel:weakself.currentdevice.Peripheral];
         
-    //     if ([peripheralName hasPrefix:filterBLEname]) {
-    //         //isFirst=NO;
-    //         //zwjLog(@"准备连接");
-    //         weakself.blestate=BleStateConnecting;
-    //         return YES;
-    //     }
-    //     return NO;
-    // }];
-    // //连接成功
-    // [baby setBlockOnConnected:^(CBCentralManager *central, CBPeripheral *peripheral) {
-    //     zwjLog(@"设备：%@--连接成功",peripheral.name);
-    //     BLEDevice *device = weakself.bleDevicesSaveDic[peripheral.identifier.UUIDString];
-    //     device.isConnected = YES;
-    //     //取消自动回连功能(连接成功后必须清除自动回连,否则会崩溃)
-    //     [weakself AutoReconnectCancel:weakself.currentdevice.Peripheral];
-        
-    //     }];
-    //     weakself.ESP32data=NULL;
-    //     weakself.length=0;
+        }];
+        weakself.ESP32data=NULL;
+        weakself.length=0;
     
-    // //设备连接失败
-    // [baby setBlockOnFailToConnect:^(CBCentralManager *central, CBPeripheral *peripheral, NSError *error) {
-    //     zwjLog(@"设备：%@--连接失败",peripheral.name);
-    //     BLEDevice *device = weakself.bleDevicesSaveDic[peripheral.identifier.UUIDString];
-    //     device.isConnected = NO;
-    //     //清除主动断开标志
-    //     weakself.APPCancelConnect=NO;
-    //     //[LocalNotifyFunc DeleteAllUserDefaultsAndCancelnotifyWithBlestate:weakself.blestate];
-    // }];
-    // //发现设备的services委托
-    // [baby setBlockOnDiscoverServices:^(CBPeripheral *peripheral, NSError *error) {
-    //     zwjLog(@"发现服务");
-    //     //更新蓝牙状态,进入已连接状态
-    //     weakself.blestate=BleStateConnected;
-    //     //weakself.title=weakself.currentdevice.name;
-        
-    // }];
-    // [baby setBlockOnDidReadRSSI:^(NSNumber *RSSI, NSError *error) {
-    //     //zwjLog(@"当前连接设备的RSSI值为:%@",RSSI);
-    // }];
-    // //设置发现services的characteristics
-    // [baby setBlockOnDiscoverCharacteristics:^(CBPeripheral *peripheral, CBService *service, NSError *error) {
-    //     zwjLog(@"===service name:%@",service.UUID);
-    //     for (CBCharacteristic *characteristic in service.characteristics)
-    //     {
-    //         if ([characteristic.UUID.UUIDString isEqualToString:UUIDSTR_ESPRESSIF_Notify])
-    //         {
-    //             //订阅通知
-    //             [weakbaby notify:peripheral characteristic:characteristic block:^(CBPeripheral *peripheral, CBCharacteristic *characteristics, NSError *error){
-    //                  NSData *data=characteristic.value;
-    //                 if (data.length<3) {
-    //                     return ;
-    //                 }
-    //                 //zwjLog(@"接收到数据为%@>>>>>>>>>>>>",data);
-    //                 //zwjLog(@"%@",[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding]);
-    //                 NSMutableData *Mutabledata=[NSMutableData dataWithData:data];
-    //                 [weakself analyseData:Mutabledata];
+    //Device connection failed
+    [baby setBlockOnFailToConnect:^(CBCentralManager *central, CBPeripheral *peripheral, NSError *error) {
+        RCTLog(@"Device '%@': Connection failed",peripheral.name);
+        BLEDevice *device = weakself.bleDevicesSaveDic[peripheral.identifier.UUIDString];
+        device.isConnected = NO;
+        // Clear the active disconnect sign
+        weakself.APPCancelConnect=NO;
+        //[LocalNotifyFunc DeleteAllUserDefaultsAndCancelnotifyWithBlestate:weakself.blestate];
+    }];
+    //Discover services commissioned by the device
+    [baby setBlockOnDiscoverServices:^(CBPeripheral *peripheral, NSError *error) {
+        RCTLog(@"Discovery Service");
+        //Update Bluetooth status and enter connected status
+        weakself.blestate=BleStateConnected;
+        //weakself.title=weakself.currentdevice.name;    
+    }];
+
+    [baby setBlockOnDidReadRSSI:^(NSNumber *RSSI, NSError *error) {
+        RCTLog(@"The RSSI value of the currently connected device:%@",RSSI);
+    }];
+
+    // Set the characteristics of discovered services
+    [baby setBlockOnDiscoverCharacteristics:^(CBPeripheral *peripheral, CBService *service, NSError *error) {
+        RCTLog(@"===service name:%@",service.UUID);
+        for (CBCharacteristic *characteristic in service.characteristics)
+        {
+            if ([characteristic.UUID.UUIDString isEqualToString:UUIDSTR_ESPRESSIF_Notify])
+            {
+                //Subscription notification
+                [weakbaby notify:peripheral characteristic:characteristic block:^(CBPeripheral *peripheral, CBCharacteristic *characteristics, NSError *error){
+                     NSData *data=characteristic.value;
+                    if (data.length<3) {
+                        return ;
+                    }
+                    // RCTLog(@"The received data is%@>>>>>>>>>>>>",data);
+                    // RCTLog(@"%@",[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding]);
+                    NSMutableData *Mutabledata=[NSMutableData dataWithData:data];
+                    [weakself analyseData:Mutabledata];
                     
-    //                  if(weakself.ConnectTimeoutTimer)
-    //                  {
-    //                      //销毁连接超时定时器
-    //                      [weakself.ConnectTimeoutTimer invalidate];
-    //                  }
+                     if(weakself.ConnectTimeoutTimer)
+                     {
+                        // Destroy connection timeout timer
+                        [weakself.ConnectTimeoutTimer invalidate];
+                     }
                          
-    //                 }];
-    //         }
-    //         if ([characteristic.UUID.UUIDString isEqualToString:UUIDSTR_ESPRESSIF_Write])
-    //         {
-    //             zwjLog(@"UUIDSTR_ESPRESSIF_RX");
-    //             _WriteCharacteristic=characteristic;
-    //         }
-    //     }
-    // }];
+                    }];
+            }
+            if ([characteristic.UUID.UUIDString isEqualToString:UUIDSTR_ESPRESSIF_Write])
+            {
+                RCTLog(@"UUIDSTR_ESPRESSIF_RX");
+                _WriteCharacteristic=characteristic;
+            }
+        }
+    }];
     
-    // //读取characteristic
-    // [baby setBlockOnReadValueForCharacteristic:^(CBPeripheral *peripheral, CBCharacteristic *characteristic, NSError *error)
-    //  {
+    // Read characteristic
+    [baby setBlockOnReadValueForCharacteristic:^(CBPeripheral *peripheral, CBCharacteristic *characteristic, NSError *error)
+     {
          
-    //  }];
+     }];
     
-    // //设置发现characteristics的descriptors的委托
-    // [baby setBlockOnDiscoverDescriptorsForCharacteristic:^(CBPeripheral *peripheral, CBCharacteristic *characteristic, NSError *error) {
-    // }];
+    // Set up a delegate to discover descriptors of characteristics
+    [baby setBlockOnDiscoverDescriptorsForCharacteristic:^(CBPeripheral *peripheral, CBCharacteristic *characteristic, NSError *error) {
+    }];
     
-    // //设置读取Descriptor的委托
-    // [baby setBlockOnReadValueForDescriptors:^(CBPeripheral *peripheral, CBDescriptor *descriptor, NSError *error) {
-    //     //Log(@"Descriptor name:%@ value is:%@",descriptor.characteristic.UUID, descriptor.value);
-    // }];
+    //Set the delegate to read the descriptor
+    [baby setBlockOnReadValueForDescriptors:^(CBPeripheral *peripheral, CBDescriptor *descriptor, NSError *error) {
+        // Log(@"Descriptor name:%@ value is:%@",descriptor.characteristic.UUID, descriptor.value);
+    }];
     
-    // //断开连接回调
-    // [baby setBlockOnDisconnect:^(CBCentralManager *central, CBPeripheral *peripheral, NSError *error) {
-    //     if (error) {
-    //         zwjLog(@"断开连接Error %@",error);
-    //     }
-    //     BLEDevice *device = weakself.bleDevicesSaveDic[peripheral.identifier.UUIDString];
-    //     device.isConnected = NO;
+    // //Disconnect callback
+    [baby setBlockOnDisconnect:^(CBCentralManager *central, CBPeripheral *peripheral, NSError *error) {
+        if (error) {
+            RCTLog(@"Disconnect Error %@",error);
+        }
+        BLEDevice *device = weakself.bleDevicesSaveDic[peripheral.identifier.UUIDString];
+        device.isConnected = NO;
         
-    //     if (weakself.APPCancelConnect) {
-    //         //清标志位
-    //         weakself.APPCancelConnect=NO;
-    //         weakself.blestate=BleStateDisconnect;
-    //          zwjLog(@"设备：%@--断开连接",peripheral.name);
-    //     }
-    //     else{
-    //         //更新蓝牙状态,已连接状态
-    //         weakself.blestate=BleStateReConnect;
-    //         //添加自动回连
-    //         if (weakself.currentdevice.Peripheral) {
-    //             [weakself AutoReconnect:weakself.currentdevice.Peripheral];
-    //             zwjLog(@"设备：%@--重新连接",peripheral.name);
-    //         }
-    //     }
-    //     //断开连接时,如果有数据就保存到数据库
-    // }];
-    // //取消所有连接回调
-    // [baby setBlockOnCancelAllPeripheralsConnectionBlock:^(CBCentralManager *centralManager) {
-    //     zwjLog(@"setBlockOnCancelAllPeripheralsConnectionBlock");
-    // }];
-    // //********取消扫描回调***********//
-    // [baby setBlockOnCancelScanBlock:^(CBCentralManager *centralManager) {
-    //     //Log(@"取消扫描");
-    //     //停止进度条
-    //     [weakself StopProgressView];
-    //      weakself.blestate=BleStateWaitToConnect;
-    //     NSInteger count=weakself.BLEDeviceArray.count;
-    //     if(weakself.popview)
-    //     {
-    //         if (count<=0) {
-    //             weakself.popview.titlelabel.text=NSLocalizedString(@"popviewnodevice", nil);
-    //             //更新蓝牙状态,进入无设备状态
-    //             weakself.blestate=BleStateNoDevice;
-    //         }else
-    //         {
-    //             weakself.popview.titlelabel.text=NSLocalizedString(@"connect", nil);
-    //         }
-    //         return ;
-            
-    //     }else
-    //     {
-    //         if (count<=0) {
-    //             weakself.popview.titlelabel.text=NSLocalizedString(@"popviewnodevice", nil);
-    //             //更新蓝牙状态,进入无设备状态
-    //             weakself.blestate=BleStateNoDevice;
-    //         }else if (count>=1) {
-    //             [weakself PopScanViewWithTitle:NSLocalizedString(@"connect", nil)];
-    //         }
-    //     }
-        
-    // }];
-    // //扫描选项->CBCentralManagerScanOptionAllowDuplicatesKey:忽略同一个Peripheral端的多个发现事件被聚合成一个发现事件
-    // NSDictionary *scanForPeripheralsWithOptions = @{CBCentralManagerScanOptionAllowDuplicatesKey:@YES};
+        if (weakself.APPCancelConnect) {
+            // Clear flag
+            weakself.APPCancelConnect=NO;
+            weakself.blestate=BleStateDisconnect;
+             RCTLog(@"device '%@': Disconnect",peripheral.name);
+        }
+        else{
+            // Update Bluetooth status, connected status
+            weakself.blestate=BleStateReConnect;
+            // Add auto-connect
+            if (weakself.currentdevice.Peripheral) {
+                [weakself AutoReconnect:weakself.currentdevice.Peripheral];
+                RCTLog(@"Device '%@': Reconnect",peripheral.name);
+            }
+        }
+        // When disconnected, if there is data, save it to the database
+    }];
+
+    //Cancel all connection callbacks
+    [baby setBlockOnCancelAllPeripheralsConnectionBlock:^(CBCentralManager *centralManager) {
+        RCTLog(@"setBlockOnCancelAllPeripheralsConnectionBlock");
+    }];
+
+    //******** Cancel scan callback ***********//
+    [baby setBlockOnCancelScanBlock:^(CBCentralManager *centralManager) {
+        Log(@"Cancel scan");
+         weakself.blestate=BleStateWaitToConnect;
+        NSInteger count=weakself.BLEDeviceArray.count;
+    }];
+
+    // Scan Options->CBCentralManagerScanOptionAllowDuplicatesKey: Ignore multiple discovery events on the same Peripheral side are aggregated into one discovery event
+    NSDictionary *scanForPeripheralsWithOptions = @{CBCentralManagerScanOptionAllowDuplicatesKey:@YES};
     
-    // NSDictionary *connectOptions = @{CBConnectPeripheralOptionNotifyOnConnectionKey:@YES,
-    //                                  CBConnectPeripheralOptionNotifyOnDisconnectionKey:@YES,
-    //                                  CBConnectPeripheralOptionNotifyOnNotificationKey:@YES};
-    // //连接设备->
-    // [baby setBabyOptionsWithScanForPeripheralsWithOptions:scanForPeripheralsWithOptions connectPeripheralWithOptions:connectOptions scanForPeripheralsWithServices:nil discoverWithServices:nil discoverWithCharacteristics:nil];
-    // //订阅状态改变
-    // [baby setBlockOnDidUpdateNotificationStateForCharacteristic:^(CBCharacteristic *characteristic, NSError *error) {
-    //     if (error) {
-    //         zwjLog(@"订阅 Error");
-    //     }
-    //     if (characteristic.isNotifying) {
-    //         zwjLog(@"订阅成功");
-    //         [weakself writeStructDataWithCharacteristic:weakself.WriteCharacteristic WithData:[PacketCommand GetDeviceInforWithSequence:weakself.sequence]];
-    //         [weakself SendNegotiateData];
-    //     }
-    //     else
-    //     {
-    //         zwjLog(@"已经取消订阅");
-    //     }
+    NSDictionary *connectOptions = @{CBConnectPeripheralOptionNotifyOnConnectionKey:@YES,
+                                     CBConnectPeripheralOptionNotifyOnDisconnectionKey:@YES,
+                                     CBConnectPeripheralOptionNotifyOnNotificationKey:@YES};
+    // Connect the device->
+    [baby setBabyOptionsWithScanForPeripheralsWithOptions:scanForPeripheralsWithOptions connectPeripheralWithOptions:connectOptions scanForPeripheralsWithServices:nil discoverWithServices:nil discoverWithCharacteristics:nil];
+    // Subscription status changed
+    [baby setBlockOnDidUpdateNotificationStateForCharacteristic:^(CBCharacteristic *characteristic, NSError *error) {
+        if (error) {
+            RCTLog(@"Subscription Error");
+        }
+        if (characteristic.isNotifying) {
+            RCTLog(@"Subscription successful");
+            [weakself writeStructDataWithCharacteristic:weakself.WriteCharacteristic WithData:[PacketCommand GetDeviceInforWithSequence:weakself.sequence]];
+            [weakself SendNegotiateData];
+        }
+        else
+        {
+            RCTLog(@"Unsubscribed");
+        }
+    }];
+
+    // Send data completion callback
+    [weakbaby setBlockOnDidWriteValueForCharacteristic:^(CBCharacteristic *characteristic, NSError *error)
+     {
+         if (error)
+         {
+             RCTLog(@"%@",error);
+             return ;
+         }
+         RCTLog(@"Sending data is complete");
         
-    // }];
-    // //发送数据完成回调
-    // [weakbaby setBlockOnDidWriteValueForCharacteristic:^(CBCharacteristic *characteristic, NSError *error)
-    //  {
-    //      if (error)
-    //      {
-    //          zwjLog(@"%@",error);
-    //          [HUDTips ShowLabelTipsToView:self.navigationController.view WithText:@"command error"];
-    //          return ;
-    //      }
-    //      zwjLog(@"发送数据完成");
-        
-    // }];
+    }];
 }
 
 /**
- *  直连
+ *  Direct connection
  *
- *  @param peripheral 要连接的蓝牙设备
+ *  @param peripheral Bluetooth device to be connected
  */
 -(void)connect:(CBPeripheral *)peripheral
 {
     baby.having(peripheral).connectToPeripherals().discoverServices().discoverCharacteristics().begin();
 }
-//断开自动重连
+// Disconnect automatic reconnection
 -(void)AutoReconnect:(CBPeripheral *)peripheral
 {
     [baby AutoReconnect:peripheral];
 }
-//删除自动重连
+// Delete auto reconnect
 - (void)AutoReconnectCancel:(CBPeripheral *)peripheral;
 {
     [baby AutoReconnectCancel:peripheral];
 }
 
-/**
- *  断开连接
- */
+// Disconnect
 -(void)Disconnect:(CBPeripheral *)Peripheral
 {
     self.APPCancelConnect=YES;
     BLEDevice *device = self.bleDevicesSaveDic[Peripheral.identifier.UUIDString];
     if (device.isConnected) {
-        //取消某个连接
+        // Cancel a connection
         [baby cancelPeripheralConnection:Peripheral];
         self.blestate=BleStateDisconnect;
     }
     
 }
-//取消所有连接
+// Cancel all connections
 -(void)CancelAllConnect
 {
     if([baby findConnectedPeripherals].count>0)
     {
         self.APPCancelConnect=YES;
-        //断开所有蓝牙连接
+        // Disconnect all Bluetooth connections
         [baby cancelAllPeripheralsConnection];
     }
 }
