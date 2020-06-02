@@ -14,12 +14,12 @@ RCT_EXPORT_METHOD(init: (RCTResponseSenderBlock)callback)
 	// Initialize the Bluetooth BabyBluetooth library
 	baby=[BabyBluetooth shareBabyBluetooth];
 	// Set up Bluetooth delegation
-	[self babyDelegate];
+	[self BleDelegate];
 }
 
 RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
 {
-	RCTLog(@"scanning...")
+	RCTLog(@"scanning...");
 	baby.scanForPeripherals().begin();
 
   // NSArray *devices = []

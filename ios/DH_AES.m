@@ -38,7 +38,7 @@
     /* 检查公钥 */
     ret=DH_check_pub_key(d1,d1->pub_key,&i);
     if(ret!=1) {
-        zwjLog(@"error");
+        // zwjLog(@"error");
     }
     
     // 初始化
@@ -72,7 +72,7 @@
 {
     unsigned char sharekey[128];
     if (!object.dh) {
-        zwjLog(@"秘钥不存在");
+        // zwjLog(@"秘钥不存在");
         return nil;
     }
     unsigned char MD5result[16];
@@ -98,7 +98,7 @@
     BN_free(pubkey);
     DH_free(object.dh);
     object.dh=NULL;
-    zwjLog(@"security=%@",data);
+    // zwjLog(@"security=%@",data);
     return data;
     
 }
@@ -141,7 +141,7 @@
     //    }
     NSData *Decrydata=[NSData dataWithBytes:crypt_data length:crypt_len];
     
-    zwjLog(@"data=%@",Decrydata);
+    // zwjLog(@"data=%@",Decrydata);
     return Decrydata;
     
 }
