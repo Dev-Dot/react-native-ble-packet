@@ -1,6 +1,7 @@
 #import "BlePacket.h"
 
 #import <React/RCTLog.h>
+#import <CoreBluetooth/CoreBluetooth.h>
 #import "BabyBluetooth.h"
 #import "PacketCommand.h"
 
@@ -13,7 +14,7 @@
 // #import "LocalNotifyFunc.h"
 // #import "ConfigureVC.h"
 
-#import "utils/Prefix.pch"
+#import "Prefix.pch"
 
 #define filterBLEname   @"BLUFI_"
 #define SCANTIME        20
