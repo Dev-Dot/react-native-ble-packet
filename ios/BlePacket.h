@@ -8,7 +8,7 @@ typedef enum {
     backgroundMode,
 }ActiveMode;
 
-@interface BlePacket : NSObject <RCTBridgeModule>
+@interface BlePacket : RCTEventEmitter <RCTBridgeModule>
 typedef enum {
     BleStateUnknown=0,
     BleStatePowerOn,

@@ -44,7 +44,12 @@ BabyBluetooth *baby;
 
 RCT_EXPORT_MODULE()
 
-RCT_EXPORT_METHOD(init: (RCTResponseSenderBlock)callback)
+- (NSArray<NSString *> *)supportedEvents
+{
+  return @[@"devices"];
+}
+
+RCT_EXPORT_METHOD(setup: (RCTResponseSenderBlock)callback)
 {
     RCTLog(@"Init...");
     // Initialize the Bluetooth BabyBluetooth library
@@ -75,7 +80,7 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
 
 RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
 {
-    RCTLog(@"connecting...");
+    RCTLog(@"connecting to: %ld", (long)index);
     
     if (self.blestate==BleStateScan){
         [baby cancelScan];
@@ -84,11 +89,12 @@ RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
     if (index>=self.BLEDeviceArray.count) {
         return;
     }
-    
+    RCTLog(@"Take out the device");
     // Take out the device
     BLEDevice *device = self.BLEDeviceArray[index];
     CBPeripheral *Peripheral=device.Peripheral;
     device.isConnected = NO;
+    RCTLog(@"DEVICE SELECTED: %@",device.name);
     // Connection
     [self connect:Peripheral];
     // Update Bluetooth status and enter connection status
@@ -135,20 +141,23 @@ RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
 
     //搜索蓝牙
     [baby setBlockOnDiscoverToPeripherals:^(CBCentralManager *central, CBPeripheral *peripheral, NSDictionary *advertisementData, NSNumber *RSSI) {
-        RCTLog(@"Device found:%@,%@",peripheral.name,advertisementData);
+//        RCTLog(@"Device found:%@,%@",peripheral.name,advertisementData);
         //Add the scanned device to the array
         //NSString *serialnumber=[BLEdataFunc GetSerialNumber:advertisementData];
         //NSString *name=[NSString stringWithFormat:@"%@%@",peripheral.name,serialnumber];
         NSString *name=[NSString stringWithFormat:@"%@",peripheral.name];
-        RCTLog(@"Device NAME: %@",name);
         if (![BLEdataFunc isAleadyExist:name BLEDeviceArray:weakself.BLEDeviceArray])
         {
+            RCTLog(@"Device NAME: %@",name);
             BLEDevice *device=[[BLEDevice alloc]init];
             device.name=name;
             device.Peripheral=peripheral;
             device.uuidBle = peripheral.identifier.UUIDString;
             [weakself.BLEDeviceArray addObject:device];
             weakself.bleDevicesSaveDic[device.uuidBle] = device;
+
+            [self sendEventWithName:@"devices" body:@{@"name": name}];
+            // [self sendEventWithName:@"devices" body:weakself.BLEDeviceArray];
 
         }
     }];
