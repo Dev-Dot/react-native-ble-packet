@@ -73,12 +73,13 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
     baby.scanForPeripherals().begin().stop(SCANTIME);
 }
 
-RCT_EXPORT_METHOD(connect: (NSInteger)index)
+RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
 {
     RCTLog(@"connecting...");
     
     if (self.blestate==BleStateScan){
-        [baby babyStop];
+        [baby cancelScan];
+        [baby cancelAllPeripheralsConnection];
     }
     if (index>=self.BLEDeviceArray.count) {
         return;
