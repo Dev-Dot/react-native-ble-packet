@@ -4,6 +4,7 @@
 #import <CoreBluetooth/CoreBluetooth.h>
 #import "BabyBluetooth.h"
 #import "PacketCommand.h"
+#import "DH_AES.h"
 
 #import "UUID.h"
 #import "NSDate+Datestring.h"
@@ -69,29 +70,31 @@ RCT_EXPORT_METHOD(init: (RCTResponseSenderBlock)callback)
 RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
 {
     RCTLog(@"scanning...");
-    baby.scanForPeripherals().begin();
-
-  // NSArray *devices = []
-  // if (devices) {
-  //    RCTLog(@"scan: RESOLVE")
-  //   resolve(devices);
-  // } else {
-  //    RCTLog(@"scan: REJECT")
-  //   // NSError *error =
-  //   reject(@"no_devices", @"There were no devices", error);
-  // }
+    baby.scanForPeripherals().begin().stop(SCANTIME);
 }
 
-// RCT_EXPORT_METHOD(getDeviceName:(RCTResponseSenderBlock)callback){
-//  @try{
-//    NSString *deviceName = [[UIDevice currentDevice] name];
-//    callback(@[[NSNull null], deviceName]);
-//  }
-//  @catch(NSException *exception){
-//    callback(@[exception.reason, [NSNull null]]);
-//  }
-// }
-
+RCT_EXPORT_METHOD(connect: (NSInteger)index)
+{
+    RCTLog(@"connecting...");
+    
+    if (self.blestate==BleStateScan){
+        [baby babyStop];
+    }
+    if (index>=self.BLEDeviceArray.count) {
+        return;
+    }
+    
+    // Take out the device
+    BLEDevice *device = self.BLEDeviceArray[index];
+    CBPeripheral *Peripheral=device.Peripheral;
+    device.isConnected = NO;
+    // Connection
+    [self connect:Peripheral];
+    // Update Bluetooth status and enter connection status
+    self.blestate=BleStateConnecting;
+    // Save the current device information
+    self.currentdevice=device;
+}
 
 /**
  *  Bluetooth proxy
@@ -136,6 +139,7 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
         //NSString *serialnumber=[BLEdataFunc GetSerialNumber:advertisementData];
         //NSString *name=[NSString stringWithFormat:@"%@%@",peripheral.name,serialnumber];
         NSString *name=[NSString stringWithFormat:@"%@",peripheral.name];
+        RCTLog(@"Device NAME: %@",name);
         if (![BLEdataFunc isAleadyExist:name BLEDeviceArray:weakself.BLEDeviceArray])
         {
             BLEDevice *device=[[BLEDevice alloc]init];
@@ -149,14 +153,14 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
     }];
     
     // Set scan filter
-    [baby setFilterOnDiscoverPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI)
-     {
-         if ([peripheralName hasPrefix:filterBLEname])
-         {
-             return YES;
-         }
-         return NO;
-     }];
+//    [baby setFilterOnDiscoverPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI)
+//     {
+//         if ([peripheralName hasPrefix:filterBLEname])
+//         {
+//             return YES;
+//         }
+//         return NO;
+//     }];
     
     // Set connection filter
     [baby setFilterOnConnectToPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI) {
@@ -370,6 +374,21 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
     }
 }
 
+-(void)writeStructDataWithCharacteristic:(CBCharacteristic *)Characteristic WithData:(NSData *)data
+{
+    if (self.blestate!=BleStateConnected) {
+        RCTLog(@"Can't perform the operation");
+        return;
+    }
+    
+    if (self.currentdevice.Peripheral && Characteristic)
+    {
+        RCTLog(@"Sent data=%@,%lu",data,(unsigned long)data.length);
+        [[baby findConnectedPeripherals].firstObject writeValue:data forCharacteristic:Characteristic type:CBCharacteristicWriteWithResponse];
+        self.sequence=self.sequence+1;
+    }
+}
+
 -(void)analyseData:(NSMutableData *)data
 {
     Byte *dataByte = (Byte *)[data bytes];
@@ -410,7 +429,7 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
         }else
         {
             RCTLog(@"Verification failed, return");
-            [HUDTips ShowLabelTipsToView:self.view WithText:@"Verification failed"];
+//            [HUDTips ShowLabelTipsToView:self.view WithText:@"Verification failed"];
             return;
         }
         
@@ -464,7 +483,7 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
     else
     {
         RCTLog(@"Abnormal packet");
-        [HUDTips ShowLabelTipsToView:self.view WithText:@"Abnormal packet"];
+//        [HUDTips ShowLabelTipsToView:self.view WithText:@"Abnormal packet"];
     }
 }
 
@@ -631,7 +650,7 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
                     break;
             }
             RCTLog(@"%@",OpmodeTitle);
-            self.Opmodelabel.text=OpmodeTitle;
+//            self.Opmodelabel.text=OpmodeTitle;
             
             NSString *StateTitle;
             if (dataByte[1]==0x0) {
@@ -641,17 +660,17 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
                 StateTitle=@"STA is not connected";
             }
             RCTLog(@"%@",StateTitle);
-            self.STAStatelabel.text=StateTitle;
+//            self.STAStatelabel.text=StateTitle;
             
             RCTLog(@"SoftAP connection status,%d 个STA",dataByte[2]);
-            self.STACountlabel.text=[NSString stringWithFormat:@"Number of SoftAP connected devices:%d",dataByte[2]];
-            self.BSSidSTAlabel.text=@"";
-            self.SSidSTAlabel.text=@"";
+//            self.STACountlabel.text=[NSString stringWithFormat:@"Number of SoftAP connected devices:%d",dataByte[2]];
+//            self.BSSidSTAlabel.text=@"";
+//            self.SSidSTAlabel.text=@"";
             if(data.length==0x13)
             {
                 NSString *SSID=[[NSString alloc]initWithData:[data subdataWithRange:NSMakeRange(13, dataByte[12])] encoding:NSASCIIStringEncoding];
-                self.SSidSTAlabel.text=[NSString stringWithFormat:@"STA_WIFI_SSID:%@",SSID];
-                self.BSSidSTAlabel.text=[NSString stringWithFormat:@"STA_WIFI_BSSID:%02x%02x%02x%02x%02x%02x",dataByte[5],dataByte[6],dataByte[7],dataByte[8],dataByte[9],dataByte[10]];
+//                self.SSidSTAlabel.text=[NSString stringWithFormat:@"STA_WIFI_SSID:%@",SSID];
+//                self.BSSidSTAlabel.text=[NSString stringWithFormat:@"STA_WIFI_BSSID:%02x%02x%02x%02x%02x%02x",dataByte[5],dataByte[6],dataByte[7],dataByte[8],dataByte[9],dataByte[10]];
             }
         }
             break;

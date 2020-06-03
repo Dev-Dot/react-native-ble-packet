@@ -11,7 +11,7 @@
 #import "OpmodeObject.h"
 #import <SystemConfiguration/CaptiveNetwork.h>
 
-#import "sendViewController.h"
+// #import "sendViewController.h"
 #import <CoreLocation/CoreLocation.h>
 
 #define ScreenW  [UIScreen mainScreen].bounds.size.width
@@ -34,7 +34,7 @@ typedef enum
     Othermode,
 }SoftPasswordMode;
 
-@interface ConfigureVC ()<TFPickerDelegate,UITextFieldDelegate>
+@interface ConfigureVC ()<UITextFieldDelegate>
 
 @property(nonatomic,assign)NSInteger selectindex;
 @property(nonatomic,assign)UIButton *DeviceModeBtn;
@@ -120,7 +120,6 @@ typedef enum
     UILabel *DeviceModeLabel=[[UILabel alloc]initWithFrame:CGRectMake(0, offset, labelW, Height)];
     DeviceModeLabel.textAlignment=NSTextAlignmentCenter;
     DeviceModeLabel.text=@"Opmode:";
-    DeviceModeLabel.textColor=[UIColor colorWithHexString:@"#666666"];
     [scrollview addSubview:DeviceModeLabel];
     
     UIButton *DeviceModeBtn=[[UIButton alloc]initWithFrame:CGRectMake(CGRectGetMaxX(DeviceModeLabel.frame)+leftmargin, offset, buttonW, Height)];
@@ -128,8 +127,6 @@ typedef enum
     DeviceModeBtn.titleLabel.font=[UIFont systemFontOfSize:20];
     DeviceModeBtn.layer.cornerRadius=DeviceModeBtn.bounds.size.height/2;
     DeviceModeBtn.layer.masksToBounds=YES;
-    DeviceModeBtn.backgroundColor=[UIColor  colorWithHexString:@"#efefef"];
-    [DeviceModeBtn setTitleColor:[UIColor colorWithHexString:@"#7aC4Eb"] forState:UIControlStateNormal];
     [DeviceModeBtn addTarget:self action:@selector(deviceModeBtnClick) forControlEvents:UIControlEventTouchUpInside];
     self.DeviceModeBtn=DeviceModeBtn;
     [scrollview addSubview:DeviceModeBtn];
@@ -145,7 +142,6 @@ typedef enum
     UILabel *SoftAPSecurityLabel=[[UILabel alloc]initWithFrame:CGRectMake(0,offset, labelW, Height)];
     SoftAPSecurityLabel.textAlignment=NSTextAlignmentCenter;
     SoftAPSecurityLabel.text=@"Security:";
-    SoftAPSecurityLabel.textColor=[UIColor colorWithHexString:@"#666666"];
     [Softview addSubview:SoftAPSecurityLabel];
     
     UIButton *SoftAPSecurityBtn=[[UIButton alloc]initWithFrame:CGRectMake(CGRectGetMaxX(SoftAPSecurityLabel.frame)+leftmargin,CGRectGetMinY(SoftAPSecurityLabel.frame), buttonW, Height)];
@@ -153,8 +149,7 @@ typedef enum
     SoftAPSecurityBtn.titleLabel.font=[UIFont systemFontOfSize:20];
     SoftAPSecurityBtn.layer.cornerRadius=DeviceModeBtn.bounds.size.height/2;
     SoftAPSecurityBtn.layer.masksToBounds=YES;
-    SoftAPSecurityBtn.backgroundColor=[UIColor  colorWithHexString:@"#efefef"];
-    [SoftAPSecurityBtn setTitleColor:[UIColor colorWithHexString:@"#7aC4Eb"] forState:UIControlStateNormal];
+
     [SoftAPSecurityBtn addTarget:self action:@selector(SoftAPSecurityBtnClick) forControlEvents:UIControlEventTouchUpInside];
     self.SoftAPSecurityBtn=SoftAPSecurityBtn;
     [Softview addSubview:SoftAPSecurityBtn];
@@ -164,7 +159,6 @@ typedef enum
     UILabel *SoftAPChannelLabel=[[UILabel alloc]initWithFrame:CGRectMake(0,CGRectGetMaxY(SoftAPSecurityLabel.frame)+offset, labelW, Height)];
     SoftAPChannelLabel.textAlignment=NSTextAlignmentCenter;
     SoftAPChannelLabel.text=@"Channel:";
-    SoftAPChannelLabel.textColor=[UIColor colorWithHexString:@"#666666"];
     [Softview addSubview:SoftAPChannelLabel];
     
     UIButton *SoftAPchannelBtn=[[UIButton alloc]initWithFrame:CGRectMake(CGRectGetMaxX(SoftAPChannelLabel.frame)+leftmargin,CGRectGetMinY(SoftAPChannelLabel.frame), buttonW, Height)];
@@ -172,8 +166,7 @@ typedef enum
     SoftAPchannelBtn.titleLabel.font=[UIFont systemFontOfSize:20];
     SoftAPchannelBtn.layer.cornerRadius=DeviceModeBtn.bounds.size.height/2;
     SoftAPchannelBtn.layer.masksToBounds=YES;
-    SoftAPchannelBtn.backgroundColor=[UIColor  colorWithHexString:@"#efefef"];
-    [SoftAPchannelBtn setTitleColor:[UIColor colorWithHexString:@"#7aC4Eb"] forState:UIControlStateNormal];
+
     [SoftAPchannelBtn addTarget:self action:@selector(SoftAPchannelBtnClick) forControlEvents:UIControlEventTouchUpInside];
     self.SotAPChannelBtn=SoftAPchannelBtn;
     [Softview addSubview:SoftAPchannelBtn];
@@ -184,15 +177,13 @@ typedef enum
     SoftAPMaxConnectLabel.textAlignment=NSTextAlignmentCenter;
     SoftAPMaxConnectLabel.text=@"max connect:";
     [Softview addSubview:SoftAPMaxConnectLabel];
-    SoftAPMaxConnectLabel.textColor=[UIColor colorWithHexString:@"#666666"];
     
     UIButton *SoftAPMaxConnectBtn=[[UIButton alloc]initWithFrame:CGRectMake(CGRectGetMaxX(SoftAPMaxConnectLabel.frame)+leftmargin,CGRectGetMinY(SoftAPMaxConnectLabel.frame), buttonW, Height)];
     [SoftAPMaxConnectBtn setTitle:@"1" forState:UIControlStateNormal];
     SoftAPMaxConnectBtn.titleLabel.font=[UIFont systemFontOfSize:20];
     SoftAPMaxConnectBtn.layer.cornerRadius=DeviceModeBtn.bounds.size.height/2;
     SoftAPMaxConnectBtn.layer.masksToBounds=YES;
-    SoftAPMaxConnectBtn.backgroundColor=[UIColor  colorWithHexString:@"#efefef"];
-    [SoftAPMaxConnectBtn setTitleColor:[UIColor colorWithHexString:@"#7aC4Eb"] forState:UIControlStateNormal];
+
     [SoftAPMaxConnectBtn addTarget:self action:@selector(SoftAPMaxConnectBtnClick) forControlEvents:UIControlEventTouchUpInside];
     self.SoftAPSMax_ConnectBtn=SoftAPMaxConnectBtn;
     [Softview addSubview:SoftAPMaxConnectBtn];
@@ -205,7 +196,6 @@ typedef enum
     [Softview addSubview:SoftSsidTextField];
     SoftSsidTextField.delegate=self;
     SoftSsidTextField.returnKeyType=UIReturnKeyDone;
-    SoftSsidTextField.textColor=[UIColor colorWithHexString:@"#666666"];
     self.SoftAPSSidTextfield=SoftSsidTextField;
     
     UIView *line=[[UIView alloc]initWithFrame:CGRectMake(0,self.SoftAPSSidTextfield.frame.size.height-2, self.SoftAPSSidTextfield.frame.size.width, 1)];
@@ -216,7 +206,6 @@ typedef enum
     UILabel *SoftAPssidlabel=[[UILabel alloc]initWithFrame:CGRectMake(leftmargin, CGRectGetMinY(SoftSsidTextField.frame)-20, 150, 20)];
     //wifissidlabel.backgroundColor=[UIColor lightGrayColor];
     SoftAPssidlabel.font=[UIFont systemFontOfSize:labelFont];
-    SoftAPssidlabel.textColor=[UIColor colorWithHexString:@"#666666"];
     SoftAPssidlabel.text=@"SoftAP ssid:";
     [self.softview addSubview:SoftAPssidlabel];
     
@@ -235,7 +224,6 @@ typedef enum
     SoftAPPasswordTextField.delegate=self;
     SoftAPPasswordTextField.returnKeyType=UIReturnKeyDone;
     SoftAPPasswordTextField.secureTextEntry=YES;
-    SoftAPPasswordTextField.textColor=[UIColor colorWithHexString:@"#666666"];
     //右侧按键
     UIButton *SoftAPbutton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, Height, Height)];
     //SoftAPbutton.backgroundColor=[UIColor redColor];
@@ -255,7 +243,6 @@ typedef enum
     UILabel *SoftAPpasswordlabel=[[UILabel alloc]initWithFrame:CGRectMake(leftmargin, CGRectGetMinY(SoftAPPasswordTextField.frame)-20, 150, 20)];
     //wifissidlabel.backgroundColor=[UIColor lightGrayColor];
     SoftAPpasswordlabel.font=[UIFont systemFontOfSize:labelFont];
-    SoftAPpasswordlabel.textColor=[UIColor colorWithHexString:@"#666666"];
     SoftAPpasswordlabel.text=@"SoftAP password:";
     [self.softpasswordView addSubview:SoftAPpasswordlabel];
     
@@ -273,7 +260,6 @@ typedef enum
     [wifiView addSubview:WifiSsidTextField];
     WifiSsidTextField.delegate=self;
     WifiSsidTextField.returnKeyType=UIReturnKeyDone;
-    WifiSsidTextField.textColor=[UIColor colorWithHexString:@"#666666"];
     self.WifiSSidTextField=WifiSsidTextField;
     if (![self getUserLocationAuth]) {
         _locationManagerSystem = [[CLLocationManager alloc]init];
@@ -289,7 +275,6 @@ typedef enum
     UILabel *wifissidlabel=[[UILabel alloc]initWithFrame:CGRectMake(leftmargin, CGRectGetMinY(WifiSsidTextField.frame)-20, 150, 20)];
     //wifissidlabel.backgroundColor=[UIColor lightGrayColor];
     wifissidlabel.font=[UIFont systemFontOfSize:labelFont];
-    wifissidlabel.textColor=[UIColor colorWithHexString:@"#666666"];
     wifissidlabel.text=@"wifi ssid:";
     [self.wifiview addSubview:wifissidlabel];
     
@@ -322,13 +307,11 @@ typedef enum
     UILabel *wifipasswordlabel=[[UILabel alloc]initWithFrame:CGRectMake(leftmargin, CGRectGetMinY(WifiPasswordTextField.frame)-20, 150, 20)];
     //wifissidlabel.backgroundColor=[UIColor lightGrayColor];
     wifipasswordlabel.font=[UIFont systemFontOfSize:labelFont];
-    wifipasswordlabel.textColor=[UIColor colorWithHexString:@"#666666"];
     wifipasswordlabel.text=@"wifi password:";
     [self.wifiview addSubview:wifipasswordlabel];
     
     //配置按钮
     UIButton *btn=[[UIButton alloc]initWithFrame:CGRectMake(([UIScreen mainScreen].bounds.size.width-buttonW)/2, CGRectGetMaxY(wifiView.frame)+offset, buttonW, Height)];
-    btn.backgroundColor=[UIColor colorWithHexString:@"#7aC4Eb"];
     [btn setTitle:@"配置" forState:UIControlStateNormal];
     btn.layer.cornerRadius=btn.bounds.size.height/2;
     btn.layer.masksToBounds=YES;
@@ -390,7 +373,7 @@ typedef enum
             
         }else
         {
-            [HUDTips ShowLabelTipsToView:self.view WithText:@"参数不完整"];
+//            [HUDTips ShowLabelTipsToView:self.view WithText:@"参数不完整"];
         }
     
     }
@@ -399,14 +382,14 @@ typedef enum
         
         if (self.softpasswordmode==Openmode) {
             if (self.SoftAPSSidTextfield.text.length<=0) {
-                [HUDTips ShowLabelTipsToView:self.view WithText:@"参数不完整"];
+//                [HUDTips ShowLabelTipsToView:self.view WithText:@"参数不完整"];
                 return;
             }
             
         }else
         {
             if (self.SoftAPSSidTextfield.text.length<=0 || self.SoftAPPasswordTextfield.text.length<=0) {
-                [HUDTips ShowLabelTipsToView:self.view WithText:@"参数不完整"];
+//                [HUDTips ShowLabelTipsToView:self.view WithText:@"参数不完整"];
                 return;
             }
         }
@@ -452,14 +435,14 @@ typedef enum
     {
         if (self.softpasswordmode==Openmode) {
             if (self.SoftAPSSidTextfield.text.length<=0 ||self.WifiPasswordTextField.text.length<=0 || self.WifiSSidTextField.text.length<=0) {
-                [HUDTips ShowLabelTipsToView:self.view WithText:@"参数不完整"];
+//                [HUDTips ShowLabelTipsToView:self.view WithText:@"参数不完整"];
                 return;
             }
             
         }else
         {
             if (self.SoftAPSSidTextfield.text.length<=0 || self.SoftAPPasswordTextfield.text.length<=0 ||self.WifiPasswordTextField.text.length<=0 || self.WifiSSidTextField.text.length<=0) {
-                [HUDTips ShowLabelTipsToView:self.view WithText:@"参数不完整"];
+//                [HUDTips ShowLabelTipsToView:self.view WithText:@"参数不完整"];
                 return;
             }
         }
@@ -594,47 +577,47 @@ typedef enum
 {
     [self.scrollview endEditing:YES];
     
-    PickerChoiceView *picker = [[PickerChoiceView alloc]initWithFrame:self.view.bounds];
-    picker.delegate = self;
-    picker.arrayType=max_connection;
+//    PickerChoiceView *picker = [[PickerChoiceView alloc]initWithFrame:self.view.bounds];
+//    picker.delegate = self;
+//    picker.arrayType=max_connection;
     UIWindow* currentWindow = [UIApplication sharedApplication].keyWindow;
-    [currentWindow addSubview:picker];
+//    [currentWindow addSubview:picker];
     self.selectindex=Max_ConnectionIndex;
 }
 -(void)SoftAPchannelBtnClick
 {
     [self.scrollview endEditing:YES];
     
-    PickerChoiceView *picker = [[PickerChoiceView alloc]initWithFrame:self.view.bounds];
-    picker.delegate = self;
-    picker.arrayType=channel;
-    UIWindow* currentWindow = [UIApplication sharedApplication].keyWindow;
-    [currentWindow addSubview:picker];
-    self.selectindex=ChannelIndex;
+//    PickerChoiceView *picker = [[PickerChoiceView alloc]initWithFrame:self.view.bounds];
+//    picker.delegate = self;
+//    picker.arrayType=channel;
+//    UIWindow* currentWindow = [UIApplication sharedApplication].keyWindow;
+//    [currentWindow addSubview:picker];
+//    self.selectindex=ChannelIndex;
 
 }
 -(void)SoftAPSecurityBtnClick
 {
     [self.scrollview endEditing:YES];
     
-    PickerChoiceView *picker = [[PickerChoiceView alloc]initWithFrame:self.view.bounds];
-    picker.delegate = self;
-    picker.arrayType=Security;
-    UIWindow* currentWindow = [UIApplication sharedApplication].keyWindow;
-    [currentWindow addSubview:picker];
-    self.selectindex=SecurityIndex;
+//    PickerChoiceView *picker = [[PickerChoiceView alloc]initWithFrame:self.view.bounds];
+//    picker.delegate = self;
+//    picker.arrayType=Security;
+//    UIWindow* currentWindow = [UIApplication sharedApplication].keyWindow;
+//    [currentWindow addSubview:picker];
+//    self.selectindex=SecurityIndex;
     
 }
 -(void)deviceModeBtnClick
 {
     [self.scrollview endEditing:YES];
     
-    PickerChoiceView *picker = [[PickerChoiceView alloc]initWithFrame:self.view.bounds];
-    picker.delegate = self;
-    picker.arrayType=DeviceMode;
-    UIWindow* currentWindow = [UIApplication sharedApplication].keyWindow;
-    [currentWindow addSubview:picker];
-    self.selectindex=DeviceModeIndex;
+//    PickerChoiceView *picker = [[PickerChoiceView alloc]initWithFrame:self.view.bounds];
+//    picker.delegate = self;
+//    picker.arrayType=DeviceMode;
+//    UIWindow* currentWindow = [UIApplication sharedApplication].keyWindow;
+//    [currentWindow addSubview:picker];
+//    self.selectindex=DeviceModeIndex;
 }
 //Delegate
 - (void)PickerSelectorIndixString:(NSString *)str
@@ -693,8 +676,8 @@ typedef enum
 
 - (void)didClickRightBarBtnIem:(UIBarButtonItem *)sender
 {
-    sendViewController *svc = [[sendViewController alloc]init];
-    [self.navigationController pushViewController:svc animated:YES];
+//    sendViewController *svc = [[sendViewController alloc]init];
+//    [self.navigationController pushViewController:svc animated:YES];
 }
 //textField 代理
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
