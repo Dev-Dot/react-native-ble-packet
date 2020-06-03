@@ -112,17 +112,17 @@ RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
     // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationPassword:password Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
     // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand ConnectToAPWithSequence:self.sequence]];
 
-    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetOpmode:STAOpmode Sequence:self.sequence]];
-    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationSsid:@"Fios-VNTKJ" Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
-    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationPassword:@"ribs6288dad9217wet" Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
-    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand ConnectToAPWithSequence:self.sequence]];
+    // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetOpmode:STAOpmode Sequence:self.sequence]];
+    // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationSsid:@"Fios-VNTKJ" Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
+    // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationPassword:@"ribs6288dad9217wet" Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
+    // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand ConnectToAPWithSequence:self.sequence]];
 
-    // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetOpmode:SoftAPOpmode Sequence:self.sequence]];
-    // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetSoftAPSsid:@"Fios-VNTKJ" Sequence:self.sequence]];
-    // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetSoftAPPassword:@"ribs6288dad9217wet" Sequence:self.sequence]];
-    // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetAuthenticationforSoftAP:WPA_WPA2_PSK Sequence:self.sequence]];
-    // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetChannelforSoftAP:3 Sequence:self.sequence]];
-    // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetMaxConnectforSoftAP:2 Sequence:self.sequence]];
+    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetOpmode:SoftAPOpmode Sequence:self.sequence]];
+    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetSoftAPSsid:@"Fios-VNTKJ" Sequence:self.sequence]];
+    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetSoftAPPassword:@"ribs6288dad9217wet" Sequence:self.sequence]];
+    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetAuthenticationforSoftAP:WPA_WPA2_PSK Sequence:self.sequence]];
+    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetChannelforSoftAP:3 Sequence:self.sequence]];
+    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetMaxConnectforSoftAP:2 Sequence:self.sequence]];
 }
 
 /**
