@@ -49,7 +49,7 @@ RCT_EXPORT_MODULE()
   return @[@"devices"];
 }
 
-RCT_EXPORT_METHOD(setup: (RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(setup)
 {
     RCTLog(@"Init...");
     // Initialize the Bluetooth BabyBluetooth library
@@ -156,8 +156,7 @@ RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
             [weakself.BLEDeviceArray addObject:device];
             weakself.bleDevicesSaveDic[device.uuidBle] = device;
 
-            [self sendEventWithName:@"devices" body:@{@"name": name}];
-            // [self sendEventWithName:@"devices" body:weakself.BLEDeviceArray];
+            [self sendEventWithName:@"devices" body:@{@"name": name, @"uuid": peripheral.identifier.UUIDString}];
 
         }
     }];
