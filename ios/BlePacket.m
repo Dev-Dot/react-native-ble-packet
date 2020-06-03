@@ -103,6 +103,16 @@ RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
     self.currentdevice=device;
 }
 
+RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
+{
+    RCTLog(@"CONECCTING TO NETWORK '%@', with password: %@",ssid, password);
+
+    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetOpmode:STAOpmode Sequence:self.sequence]];
+    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationSsid:ssid Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
+    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationPassword:password Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
+    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand ConnectToAPWithSequence:self.sequence]];
+}
+
 /**
  *  Bluetooth proxy
  */
