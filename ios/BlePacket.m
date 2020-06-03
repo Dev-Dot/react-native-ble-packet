@@ -50,6 +50,20 @@ RCT_EXPORT_METHOD(init: (RCTResponseSenderBlock)callback)
     baby=[BabyBluetooth shareBabyBluetooth];
     // Set up Bluetooth delegation
     [self BleDelegate];
+    // Scanned Bluetooth device collection
+    NSMutableArray *array=[NSMutableArray array];
+    // Bluetooth device connection storage
+    self.bleDevicesSaveDic = [NSMutableDictionary dictionaryWithCapacity:0];
+    self.ESP32data=[NSMutableData data];
+    self.length=0;
+    self.BLEDeviceArray=array;
+    // Set Bluetooth status, idle status
+    self.blestate=BleStateIdle;
+    // Clear the disconnect sign
+    self.APPCancelConnect=NO;
+    self.sequence=0;
+    // Get SSH key
+    self.rsaobject=[DH_AES DHGenerateKey];
 }
 
 RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
@@ -63,7 +77,7 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
   //   resolve(devices);
   // } else {
   //    RCTLog(@"scan: REJECT")
-  //   // NSError *error = 
+  //   // NSError *error =
   //   reject(@"no_devices", @"There were no devices", error);
   // }
 }
@@ -90,7 +104,7 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
      [baby setBlockOnCentralManagerDidUpdateState:^(CBCentralManager *central) {
          // Check Bluetooth status
          if (central.state==CBCentralManagerStatePoweredOn) {
-             Log(@"Bluetooth is on");
+             RCTLog(@"Bluetooth is on");
              weakself.blestate=BleStatePowerOn;
             
              NSString *UUIDStr=[[NSUserDefaults standardUserDefaults] objectForKey:ConnectedDeviceKey];
@@ -106,11 +120,11 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
          }
          if(central.state==CBCentralManagerStateUnsupported)
          {
-             //Log(@"The device does not support Bluetooth BLE");
+             //RCTLog(@"The device does not support Bluetooth BLE");
              weakself.blestate=BleStateUnknown;
          }
          if (central.state==CBCentralManagerStatePoweredOff) {
-             Log(@"Bluetooth is off");
+             RCTLog(@"Bluetooth is off");
              weakself.blestate=BleStatePoweroff;
          }
      }];
@@ -182,7 +196,7 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
         RCTLog(@"Discovery Service");
         //Update Bluetooth status and enter connected status
         weakself.blestate=BleStateConnected;
-        //weakself.title=weakself.currentdevice.name;    
+        //weakself.title=weakself.currentdevice.name;
     }];
 
     [baby setBlockOnDidReadRSSI:^(NSNumber *RSSI, NSError *error) {
@@ -235,7 +249,7 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
     
     //Set the delegate to read the descriptor
     [baby setBlockOnReadValueForDescriptors:^(CBPeripheral *peripheral, CBDescriptor *descriptor, NSError *error) {
-        // Log(@"Descriptor name:%@ value is:%@",descriptor.characteristic.UUID, descriptor.value);
+        // RCTLog(@"Descriptor name:%@ value is:%@",descriptor.characteristic.UUID, descriptor.value);
     }];
     
     // //Disconnect callback
@@ -271,7 +285,7 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
 
     //******** Cancel scan callback ***********//
     [baby setBlockOnCancelScanBlock:^(CBCentralManager *centralManager) {
-        Log(@"Cancel scan");
+        RCTLog(@"Cancel scan");
          weakself.blestate=BleStateWaitToConnect;
         NSInteger count=weakself.BLEDeviceArray.count;
     }];
@@ -353,6 +367,340 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
         self.APPCancelConnect=YES;
         // Disconnect all Bluetooth connections
         [baby cancelAllPeripheralsConnection];
+    }
+}
+
+-(void)analyseData:(NSMutableData *)data
+{
+    Byte *dataByte = (Byte *)[data bytes];
+    
+    Byte Type=dataByte[0] & 0x03;
+    Byte SubType=dataByte[0]>>2;
+    Byte sequence=dataByte[2];
+    Byte frameControl=dataByte[1];
+    Byte length=dataByte[3];
+
+    BOOL hash=frameControl & Packet_Hash_FrameCtrlType;
+    BOOL checksum=frameControl & Data_End_Checksum_FrameCtrlType;
+    //BOOL Drection=frameControl & Data_Direction_FrameCtrlType;
+    BOOL Ack=frameControl & ACK_FrameCtrlType;
+    BOOL AppendPacket=frameControl & Append_Data_FrameCtrlType;
+    
+    NSRange range=NSMakeRange(4, length);
+    NSData *Decryptdata=[data subdataWithRange:range];
+    if (hash) {
+        RCTLog(@"With encryption");
+        //Decrypt
+        Byte *byte=(Byte *)[Decryptdata bytes];
+        if (self.Securtkey != nil) {
+            Decryptdata=[DH_AES blufi_aes_DecryptWithSequence:sequence data:byte len:length KeyData:self.Securtkey];
+            [data replaceBytesInRange:range withBytes:[Decryptdata bytes]];
+        }
+    }else{
+        RCTLog(@"No encryption");
+    }
+    if (checksum) {
+        if (length+6 != data.length) {
+            return;
+        }
+        RCTLog(@"Verified");
+        // Calculation check
+        if ([PacketCommand VerifyCRCWithData:data]) {
+            RCTLog(@"Verify successfully");
+        }else
+        {
+            RCTLog(@"Verification failed, return");
+            [HUDTips ShowLabelTipsToView:self.view WithText:@"Verification failed"];
+            return;
+        }
+        
+    }
+    else{
+        RCTLog(@"No check");
+        if (length+4 != data.length) {
+            return;
+        }
+    }
+    if(Ack)
+    {
+        RCTLog(@"Reply ACK");
+        [self writeStructDataWithCharacteristic:self.WriteCharacteristic WithData:[PacketCommand ReturnAckWithSequence:self.sequence BackSequence:sequence]];
+    }else{
+        RCTLog(@"Do not reply ACK");
+    }
+    NSMutableData *decryptdata=[NSMutableData dataWithData:Decryptdata];
+    if (AppendPacket) {
+        RCTLog(@"There are follow-up packages");
+        [decryptdata replaceBytesInRange:NSMakeRange(0, 2) withBytes:NULL length:0];
+        //拼包
+        if(self.ESP32data){
+             [self.ESP32data appendData:decryptdata];
+        }else{
+            self.ESP32data=[NSMutableData dataWithData:decryptdata];
+        }
+        self.length=self.length+length;
+        return;
+    }else{
+        RCTLog(@"No follow-up package");
+        if(self.ESP32data){
+            [self.ESP32data appendData:decryptdata];
+            decryptdata =[NSMutableData dataWithData:self.ESP32data];
+            self.ESP32data=NULL;
+            length = self.length+length;
+            self.length=0;
+        }
+    }
+
+    if (Type==ContolType)
+    {
+        RCTLog(@"Control packet received ===========");
+        [self GetControlPacketWithData:decryptdata SubType:SubType];
+    }
+    else if (Type==DataType)
+    {
+        RCTLog(@"Received data packet ===========");
+        [self GetDataPackectWithData:decryptdata SubType:SubType];
+    }
+    else
+    {
+        RCTLog(@"Abnormal packet");
+        [HUDTips ShowLabelTipsToView:self.view WithText:@"Abnormal packet"];
+    }
+}
+
+-(void)GetControlPacketWithData:(NSData *)data SubType:(Byte)subtype
+{
+    switch (subtype) {
+        case ACK_Esp32_Phone_ControlSubType:
+        {
+            RCTLog(@"ACK received<<<<<<<<<<<<<<<");
+        }
+            break;
+        case ESP32_Phone_Security_ControlSubType:
+            break;
+            
+        case Wifi_Op_ControlSubType:
+            break;
+            
+        case Connect_AP_ControlSubType:
+            break;
+        case Disconnect_AP_ControlSubType:
+            break;
+        case Get_Wifi_Status_ControlSubType:
+            break;
+        case Deauthenticate_STA_Device_SoftAP_ControlSubType:
+            break;
+        case Get_Version_ControlSubType:
+            break;
+        case Negotiate_Data_ControlSubType:
+            break;
+            
+        default:
+            break;
+    }
+
+}
+
+-(void)GetDataPackectWithData:(NSData *)data SubType:(Byte)subtype
+{
+    Byte *dataByte = (Byte *)[data bytes];
+    //Byte length=dataByte[3];
+    
+    switch (subtype) {
+        case Negotiate_Data_DataSubType: //
+        {
+            //NSData *NegotiateData=[data subdataWithRange:NSMakeRange(4, length)];
+            self.Securtkey=[DH_AES GetSecurtKey:data RsaObject:self.rsaobject];
+            NSLog(@"%@", self.Securtkey);
+            // Set encryption mode
+            NSData *SetSecuritydata=[PacketCommand SetESP32ToPhoneSecurityWithSecurity:YES CheckSum:YES Sequence:self.sequence];
+            [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:SetSecuritydata];
+            
+            // Get status report
+            [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand GetDeviceInforWithSequence:self.sequence]];
+        }
+            break;
+            
+        case BSSID_STA_DataSubType:
+            
+            break;
+        case SSID_STA_DataSubType:
+            
+            break;
+        case Password_STA_DataSubType:
+            
+            break;
+        case SSID_SoftaAP_DataSubType:
+            
+            break;
+        case Password_SoftAP_DataSubType:
+            
+            break;
+        case Max_Connect_Number_SoftAP_DataSubType:
+            
+            break;
+        case Authentication_SoftAP_DataSubType:
+            
+            break;
+        case Channel_SoftAP_DataSubType:
+            
+            break;
+            
+        case Username_DataSubType:
+            
+            break;
+        case CA_Certification_DataSubType:
+            
+            break;
+        case Client_Certification_DataSubType:
+            
+            break;
+        case Server_Certification_DataSubType:
+            
+            break;
+        case Client_PrivateKey_DataSubType:
+            
+            break;
+            
+        case Server_PrivateKey_DataSubType:
+            
+            break;
+        case Wifi_List_DataSubType:
+            RCTLog(@"======Wifi_List_DataSubType");
+            RCTLog(@"%@, %lu", data, (unsigned long)data.length);
+            uint8_t ssid_length=dataByte[0];
+            while (ssid_length>0) {
+                if (data.length<(ssid_length+1)) {
+                    break;
+                }
+                Byte *dataByte = (Byte *)[data bytes];
+                int8_t rssi= dataByte[1];
+                NSData *ssid=[data subdataWithRange:NSMakeRange(2, ssid_length-1)];
+                NSString *ssidStr=[[NSString alloc]initWithData:ssid encoding:NSUTF8StringEncoding];
+                RCTLog(@"%@, rssi %d", ssidStr, rssi);
+                data=[data subdataWithRange:NSMakeRange(ssid_length+1, data.length-ssid_length-1)];
+                if (data.length<=1) {
+                    break;
+                }
+                Byte *RemainByte = (Byte *)[data bytes];
+                ssid_length = RemainByte[0];
+                
+            }
+            break;
+        case blufi_error_DataSubType:
+            if (data.length == 1) {
+                RCTLog(@"report error %d", dataByte[0]);
+            }
+            break;
+        case blufi_custom_DataSubType:{
+            NSString *str=[[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
+            RCTLog(@"receive custom data %@", str);
+            break;
+        }
+        case Wifi_Connection_state_Report_DataSubType: // Connection status report
+        {
+            if (data.length<3) {
+                return;
+            }
+            RCTLog(@"Connection status packet received<<<<<<<<<<<<<<<<");
+            NSString *OpmodeTitle;
+            switch (dataByte[0])
+            {
+                case NullOpmode:
+                {
+                    OpmodeTitle=@"Null Mode";
+                    
+                }
+                    break;
+                case STAOpmode:
+                    OpmodeTitle=@"STA mode";
+                    
+                    break;
+                case SoftAPOpmode:
+                    OpmodeTitle=@"SoftAP mode";
+                    
+                    break;
+                case SoftAP_STAOpmode:
+                    OpmodeTitle=@"SoftAP/STA mode";
+                    
+                    break;
+                    
+                default:
+                    OpmodeTitle=@"Unknown mode";
+
+                    break;
+            }
+            RCTLog(@"%@",OpmodeTitle);
+            self.Opmodelabel.text=OpmodeTitle;
+            
+            NSString *StateTitle;
+            if (dataByte[1]==0x0) {
+                StateTitle=@"STA connection status";
+            }else
+            {
+                StateTitle=@"STA is not connected";
+            }
+            RCTLog(@"%@",StateTitle);
+            self.STAStatelabel.text=StateTitle;
+            
+            RCTLog(@"SoftAP connection status,%d 个STA",dataByte[2]);
+            self.STACountlabel.text=[NSString stringWithFormat:@"Number of SoftAP connected devices:%d",dataByte[2]];
+            self.BSSidSTAlabel.text=@"";
+            self.SSidSTAlabel.text=@"";
+            if(data.length==0x13)
+            {
+                NSString *SSID=[[NSString alloc]initWithData:[data subdataWithRange:NSMakeRange(13, dataByte[12])] encoding:NSASCIIStringEncoding];
+                self.SSidSTAlabel.text=[NSString stringWithFormat:@"STA_WIFI_SSID:%@",SSID];
+                self.BSSidSTAlabel.text=[NSString stringWithFormat:@"STA_WIFI_BSSID:%02x%02x%02x%02x%02x%02x",dataByte[5],dataByte[6],dataByte[7],dataByte[8],dataByte[9],dataByte[10]];
+            }
+        }
+            break;
+        case Version_DataSubType:
+            
+            break;
+            
+        default:
+            RCTLog(@"unknown data");
+            break;
+    }
+
+
+}
+
+// Send negotiation packet
+-(void)SendNegotiateData
+{
+    if (!self.rsaobject) {
+        self.rsaobject=[DH_AES DHGenerateKey];
+    }
+    NSInteger datacount=80;
+    //Send data length
+    uint16_t length=self.rsaobject.P.length+self.rsaobject.g.length+self.rsaobject.PublickKey.length+6;
+    [self writeStructDataWithCharacteristic:self.WriteCharacteristic WithData:[PacketCommand SetNegotiatelength:length Sequence:self.sequence]];
+    
+    // Send data, need to subcontract
+    self.senddata=[PacketCommand GenerateNegotiateData:self.rsaobject];
+    // NSInteger number=self.senddata.length/datacount;
+    NSInteger number = self.senddata.length / datacount + ((self.senddata.length % datacount)>0? 1:0);
+    NSLog(@"number:%ld",(long)number);
+    if (number>0) {
+        for(NSInteger i = 0;i < number;i ++){
+            if (i == number-1) {
+                NSLog(@"i:%ld",(long)i);
+                NSData *data=[PacketCommand SendNegotiateData:self.senddata Sequence:self.sequence Frag:NO TotalLength:self.senddata.length];
+                [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:data];
+                
+            }else {
+                NSLog(@"self.senddata.length:%lu",(unsigned long)self.senddata.length);
+                NSData *data=[PacketCommand SendNegotiateData:[self.senddata subdataWithRange:NSMakeRange(0, datacount)] Sequence:self.sequence Frag:YES TotalLength:self.senddata.length];
+                [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:data];
+                self.senddata=[self.senddata subdataWithRange:NSMakeRange(datacount, self.senddata.length-datacount)];
+            }
+        }
+        
+    }else {
+        NSData *data=[PacketCommand SendNegotiateData:self.senddata Sequence:self.sequence Frag:NO TotalLength:self.senddata.length];
+        [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:data];
     }
 }
 

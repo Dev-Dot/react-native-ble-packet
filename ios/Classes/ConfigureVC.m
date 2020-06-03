@@ -7,9 +7,7 @@
 //
 
 #import "ConfigureVC.h"
-#import "UIColor+Hex.h"
-#import "PickerChoiceView.h"
-#import "HUDTips.h"
+// #import "PickerChoiceView.h"
 #import "OpmodeObject.h"
 #import <SystemConfiguration/CaptiveNetwork.h>
 
