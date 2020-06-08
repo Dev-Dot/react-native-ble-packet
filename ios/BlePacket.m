@@ -81,7 +81,7 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
 RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
 {
     RCTLog(@"connecting to: %ld", (long)index);
-    RCTLog(@"######## VERSION 1 ########");
+    RCTLog(@"######## VERSION 2 ########");
     
     if (self.blestate==BleStateScan){
         [baby cancelScan];
@@ -106,7 +106,7 @@ RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
 
 RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
 {
-    RCTLog(@"CONECCTING TO NETWORK '%@', with password: %@",ssid, password);
+    RCTLog(@"CONNECTING TO NETWORK '%@', with password: %@",ssid, password);
 
     // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetOpmode:STAOpmode Sequence:self.sequence]];
     // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationSsid:ssid Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
@@ -117,6 +117,8 @@ RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
     [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationSsid:@"Fios-VNTKJ" Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
     [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationPassword:@"ribs6288dad9217wet" Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
     [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand ConnectToAPWithSequence:self.sequence]];
+
+    RCTLog(@"############ CREDENTIALS SENT ############");
 }
 
 /**
@@ -146,7 +148,7 @@ RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
          }
          if(central.state==CBCentralManagerStateUnsupported)
          {
-             //RCTLog(@"The device does not support Bluetooth BLE");
+             RCTLog(@"The device does not support Bluetooth BLE");
              weakself.blestate=BleStateUnknown;
          }
          if (central.state==CBCentralManagerStatePoweredOff) {
