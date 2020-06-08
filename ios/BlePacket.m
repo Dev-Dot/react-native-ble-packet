@@ -81,6 +81,7 @@ RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
 RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
 {
     RCTLog(@"connecting to: %ld", (long)index);
+    RCTLog(@"######## VERSION 1 ########");
     
     if (self.blestate==BleStateScan){
         [baby cancelScan];
@@ -177,14 +178,14 @@ RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
     }];
     
     // Set scan filter
-//    [baby setFilterOnDiscoverPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI)
-//     {
-//         if ([peripheralName hasPrefix:filterBLEname])
-//         {
-//             return YES;
-//         }
-//         return NO;
-//     }];
+   [baby setFilterOnDiscoverPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI)
+    {
+        if ([peripheralName hasPrefix:filterBLEname])
+        {
+            return YES;
+        }
+        return NO;
+    }];
     
     // Set connection filter
     [baby setFilterOnConnectToPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI) {
