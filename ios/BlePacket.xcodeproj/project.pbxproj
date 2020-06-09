@@ -6,6 +6,11 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A1199C07248FF8EB0040F8B8 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1199C06248FF8EB0040F8B8 /* libcrypto.a */; };
+		A1199C09248FF9390040F8B8 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1199C08248FF9390040F8B8 /* libssl.a */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		58B511D91A9E6C8500147676 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -20,6 +25,8 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libBlePacket.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBlePacket.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1199C06248FF8EB0040F8B8 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = openssl/openssl/libcrypto.a; sourceTree = "<group>"; };
+		A1199C08248FF9390040F8B8 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = openssl/openssl/libssl.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -27,6 +34,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1199C09248FF9390040F8B8 /* libssl.a in Frameworks */,
+				A1199C07248FF8EB0040F8B8 /* libcrypto.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -45,7 +54,17 @@
 			isa = PBXGroup;
 			children = (
 				134814211AA4EA7D00B7C361 /* Products */,
+				A1199C05248FF8EB0040F8B8 /* Frameworks */,
 			);
+			sourceTree = "<group>";
+		};
+		A1199C05248FF8EB0040F8B8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				A1199C08248FF9390040F8B8 /* libssl.a */,
+				A1199C06248FF8EB0040F8B8 /* libcrypto.a */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -230,8 +249,12 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../../../React/**",
 					"$(SRCROOT)/../../react-native/React/**",
+					"$(SRCROOT)/openssl/openssl/include",
 				);
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/openssl/openssl",
+				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = BlePacket;
 				SKIP_INSTALL = YES;
@@ -246,8 +269,12 @@
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../../../React/**",
 					"$(SRCROOT)/../../react-native/React/**",
+					"$(SRCROOT)/openssl/openssl/include",
 				);
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/openssl/openssl",
+				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = BlePacket;
 				SKIP_INSTALL = YES;
