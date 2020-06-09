@@ -6,11 +6,6 @@
 	objectVersion = 46;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		A1199C07248FF8EB0040F8B8 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1199C06248FF8EB0040F8B8 /* libcrypto.a */; };
-		A1199C09248FF9390040F8B8 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A1199C08248FF9390040F8B8 /* libssl.a */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXCopyFilesBuildPhase section */
 		58B511D91A9E6C8500147676 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -34,8 +29,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1199C09248FF9390040F8B8 /* libssl.a in Frameworks */,
-				A1199C07248FF8EB0040F8B8 /* libcrypto.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,10 +244,7 @@
 					"$(SRCROOT)/../../react-native/React/**",
 					"$(SRCROOT)/openssl/openssl/include",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/openssl/openssl",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = BlePacket;
 				SKIP_INSTALL = YES;
@@ -271,10 +261,7 @@
 					"$(SRCROOT)/../../react-native/React/**",
 					"$(SRCROOT)/openssl/openssl/include",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/openssl/openssl",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = BlePacket;
 				SKIP_INSTALL = YES;
