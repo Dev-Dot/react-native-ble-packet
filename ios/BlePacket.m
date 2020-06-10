@@ -46,12 +46,13 @@ RCT_EXPORT_MODULE()
 
 - (NSArray<NSString *> *)supportedEvents
 {
-  return @[@"devices"];
+  return @[@"status", @"devices"];
 }
 
 RCT_EXPORT_METHOD(setup)
 {
     RCTLog(@"Init...");
+    [self sendEventWithName:@"status" body:@"waiting"];
     // Initialize the Bluetooth BabyBluetooth library
     baby=[BabyBluetooth shareBabyBluetooth];
     // Set up Bluetooth delegation
@@ -72,16 +73,24 @@ RCT_EXPORT_METHOD(setup)
     self.rsaobject=[DH_AES DHGenerateKey];
 }
 
-RCT_EXPORT_METHOD(scanDevices: (RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(scanDevices)
 {
     RCTLog(@"scanning...");
     baby.scanForPeripherals().begin().stop(SCANTIME);
+
+    [self sendEventWithName:@"status" body:@"scanning"];
+}
+
+RCT_EXPORT_METHOD(stopDeviceScan)
+{
+    RCTLog(@"STOP DEVICE SCAN");
+    [self sendEventWithName:@"status" body:@"stoped"];
 }
 
 RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
 {
     RCTLog(@"connecting to: %ld", (long)index);
-    RCTLog(@"######## VERSION 2 ########");
+    RCTLog(@"######## VERSION 3 ########");
     
     if (self.blestate==BleStateScan){
         [baby cancelScan];
@@ -102,11 +111,14 @@ RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
     self.blestate=BleStateConnecting;
     // Save the current device information
     self.currentdevice=device;
+
+    [self sendEventWithName:@"status" body:@"connected"];
 }
 
 RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
 {
     RCTLog(@"CONNECTING TO NETWORK '%@', with password: %@",ssid, password);
+    [self sendEventWithName:@"status" body:@"sending_credentials"];
 
     // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetOpmode:STAOpmode Sequence:self.sequence]];
     // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationSsid:ssid Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
@@ -119,6 +131,7 @@ RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
     [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand ConnectToAPWithSequence:self.sequence]];
 
     RCTLog(@"############ CREDENTIALS SENT ############");
+    [self sendEventWithName:@"status" body:@"done"];
 }
 
 /**
@@ -180,14 +193,14 @@ RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
     }];
     
     // Set scan filter
-   [baby setFilterOnDiscoverPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI)
-    {
-        if ([peripheralName hasPrefix:filterBLEname])
-        {
-            return YES;
-        }
-        return NO;
-    }];
+   // [baby setFilterOnDiscoverPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI)
+   //  {
+   //      if ([peripheralName hasPrefix:filterBLEname])
+   //      {
+   //          return YES;
+   //      }
+   //      return NO;
+   //  }];
     
     // Set connection filter
     [baby setFilterOnConnectToPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI) {
@@ -453,6 +466,7 @@ RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
         // Calculation check
         if ([PacketCommand VerifyCRCWithData:data]) {
             RCTLog(@"Verify successfully");
+            [self sendEventWithName:@"status" body:@"ready"];
         }else
         {
             RCTLog(@"Verification failed, return");

@@ -2,16 +2,26 @@ import { NativeModules, NativeEventEmitter } from 'react-native';
 
 const { BlePacket } = NativeModules;
 
-BlePacket.init = function (callback) {
+BlePacket.init = function(statusCallback, devicesCallback) {
 	const BlePacketEvents = new NativeEventEmitter(BlePacket);
 
-	if (BlePacket.subscription) {
-		BlePacket.subscription.remove();
+	if (BlePacket.statusSub) {
+		BlePacket.statusSub.remove();
 	}
 
-	BlePacket.subscription = BlePacketEvents.addListener('devices', (data) => {
-		if (callback) {
-			callback(data);
+	if (BlePacket.devicesSub) {
+		BlePacket.devicesSub.remove();
+	}
+
+	BlePacket.statusSub = BlePacketEvents.addListener('status', (data) => {
+		if (statusCallback) {
+			statusCallback(data);
+		}
+	});
+
+	BlePacket.devicesSub = BlePacketEvents.addListener('devices', (data) => {
+		if (devicesCallback) {
+			devicesCallback(data);
 		}
 	});
 
