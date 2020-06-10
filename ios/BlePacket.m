@@ -91,6 +91,7 @@ RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
 {
     RCTLog(@"connecting to: %ld", (long)index);
     RCTLog(@"######## VERSION 3 ########");
+    [self sendEventWithName:@"status" body:@"connecting"];
     
     if (self.blestate==BleStateScan){
         [baby cancelScan];
@@ -111,14 +112,12 @@ RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
     self.blestate=BleStateConnecting;
     // Save the current device information
     self.currentdevice=device;
-
-    [self sendEventWithName:@"status" body:@"connected"];
 }
 
 RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
 {
     RCTLog(@"CONNECTING TO NETWORK '%@', with password: %@",ssid, password);
-    [self sendEventWithName:@"status" body:@"sending_credentials"];
+    [self sendEventWithName:@"status" body:@"sending-credentials"];
 
     // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetOpmode:STAOpmode Sequence:self.sequence]];
     // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationSsid:ssid Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
@@ -466,7 +465,7 @@ RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
         // Calculation check
         if ([PacketCommand VerifyCRCWithData:data]) {
             RCTLog(@"Verify successfully");
-            [self sendEventWithName:@"status" body:@"ready"];
+            [self sendEventWithName:@"status" body:@"connected"];
         }else
         {
             RCTLog(@"Verification failed, return");
