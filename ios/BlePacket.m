@@ -115,16 +115,12 @@ RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
 
 RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
 {
-    RCTLog(@"CONNECTING TO NETWORK '%@', with password: %@",ssid, password);
     [self sendEventWithName:@"status" body:@"sending-credentials"];
 
     [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetOpmode:STAOpmode Sequence:self.sequence]];
     [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationSsid:ssid Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
     [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationPassword:password Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
     [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand ConnectToAPWithSequence:self.sequence]];
-
-    RCTLog(@"############ CREDENTIALS SENT ############");
-    [self sendEventWithName:@"status" body:@"done"];
 }
 
 RCT_EXPORT_METHOD(cancelConnections)
@@ -192,14 +188,14 @@ RCT_EXPORT_METHOD(cancelConnections)
     }];
     
     // Set scan filter
-   // [baby setFilterOnDiscoverPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI)
-   //  {
-   //      if ([peripheralName hasPrefix:filterBLEname])
-   //      {
-   //          return YES;
-   //      }
-   //      return NO;
-   //  }];
+   [baby setFilterOnDiscoverPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI)
+    {
+        if ([peripheralName hasPrefix:filterBLEname])
+        {
+            return YES;
+        }
+        return NO;
+    }];
     
     // Set connection filter
     [baby setFilterOnConnectToPeripherals:^BOOL(NSString *peripheralName, NSDictionary *advertisementData, NSNumber *RSSI) {
@@ -299,7 +295,7 @@ RCT_EXPORT_METHOD(cancelConnections)
     [baby setBlockOnDisconnect:^(CBCentralManager *central, CBPeripheral *peripheral, NSError *error) {
         if (error) {
             RCTLog(@"Disconnect Error %@",error);
-            RCTLog(@"##### blestate: %@",weakself.blestate);
+            [self sendEventWithName:@"status" body:@"done"];
         }
         BLEDevice *device = weakself.bleDevicesSaveDic[peripheral.identifier.UUIDString];
         device.isConnected = NO;
