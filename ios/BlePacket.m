@@ -90,7 +90,6 @@ RCT_EXPORT_METHOD(stopDeviceScan)
 RCT_EXPORT_METHOD(connectDevice: (NSInteger)index)
 {
     RCTLog(@"connecting to: %ld", (long)index);
-    RCTLog(@"######## VERSION 3 ########");
     [self sendEventWithName:@"status" body:@"connecting"];
     
     if (self.blestate==BleStateScan){
@@ -119,18 +118,19 @@ RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
     RCTLog(@"CONNECTING TO NETWORK '%@', with password: %@",ssid, password);
     [self sendEventWithName:@"status" body:@"sending-credentials"];
 
-    // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetOpmode:STAOpmode Sequence:self.sequence]];
-    // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationSsid:ssid Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
-    // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationPassword:password Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
-    // [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand ConnectToAPWithSequence:self.sequence]];
-
     [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetOpmode:STAOpmode Sequence:self.sequence]];
-    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationSsid:@"Fios-VNTKJ" Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
-    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationPassword:@"ribs6288dad9217wet" Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
+    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationSsid:ssid Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
+    [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand SetStationPassword:password Sequence:self.sequence Encrypt:YES WithKeyData:self.Securtkey]];
     [self writeStructDataWithCharacteristic:_WriteCharacteristic WithData:[PacketCommand ConnectToAPWithSequence:self.sequence]];
 
     RCTLog(@"############ CREDENTIALS SENT ############");
     [self sendEventWithName:@"status" body:@"done"];
+}
+
+RCT_EXPORT_METHOD(cancelConnections)
+{
+    RCTLog(@"Cancel Connections");
+    [self CancelAllConnect];
 }
 
 /**
@@ -173,7 +173,7 @@ RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
     [baby setBlockOnDiscoverToPeripherals:^(CBCentralManager *central, CBPeripheral *peripheral, NSDictionary *advertisementData, NSNumber *RSSI) {
 //        RCTLog(@"Device found:%@,%@",peripheral.name,advertisementData);
         //Add the scanned device to the array
-        //NSString *serialnumber=[BLEdataFunc GetSerialNumber:advertisementData];
+        NSString *serialnumber=[BLEdataFunc GetSerialNumber:advertisementData];
         //NSString *name=[NSString stringWithFormat:@"%@%@",peripheral.name,serialnumber];
         NSString *name=[NSString stringWithFormat:@"%@",peripheral.name];
         if (![BLEdataFunc isAleadyExist:name BLEDeviceArray:weakself.BLEDeviceArray])
@@ -186,7 +186,7 @@ RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
             [weakself.BLEDeviceArray addObject:device];
             weakself.bleDevicesSaveDic[device.uuidBle] = device;
 
-            [self sendEventWithName:@"devices" body:@{@"name": name, @"uuid": peripheral.identifier.UUIDString}];
+            [self sendEventWithName:@"devices" body:@{@"name": name, @"uuid": peripheral.identifier.UUIDString, @"serial_number": serialnumber}];
 
         }
     }];
@@ -299,6 +299,7 @@ RCT_EXPORT_METHOD(connectToWiFi: (NSString *)ssid password:(NSString *)password)
     [baby setBlockOnDisconnect:^(CBCentralManager *central, CBPeripheral *peripheral, NSError *error) {
         if (error) {
             RCTLog(@"Disconnect Error %@",error);
+            RCTLog(@"##### blestate: %@",weakself.blestate);
         }
         BLEDevice *device = weakself.bleDevicesSaveDic[peripheral.identifier.UUIDString];
         device.isConnected = NO;
