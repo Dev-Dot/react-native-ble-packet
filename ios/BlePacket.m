@@ -470,6 +470,7 @@ RCT_EXPORT_METHOD(cancelConnections)
         }else
         {
             RCTLog(@"Verification failed, return");
+            [self sendEventWithName:@"status" body:@"error"];
 //            [HUDTips ShowLabelTipsToView:self.view WithText:@"Verification failed"];
             return;
         }
