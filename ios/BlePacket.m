@@ -173,7 +173,7 @@ RCT_EXPORT_METHOD(cancelConnections)
     [baby setBlockOnDiscoverToPeripherals:^(CBCentralManager *central, CBPeripheral *peripheral, NSDictionary *advertisementData, NSNumber *RSSI) {
 //        RCTLog(@"Device found:%@,%@",peripheral.name,advertisementData);
         //Add the scanned device to the array
-        NSString *serialnumber=[BLEdataFunc GetSerialNumber:advertisementData];
+        // NSString *serialnumber=[BLEdataFunc GetSerialNumber:advertisementData];
         //NSString *name=[NSString stringWithFormat:@"%@%@",peripheral.name,serialnumber];
         NSString *name=[NSString stringWithFormat:@"%@",peripheral.name];
         if (![BLEdataFunc isAleadyExist:name BLEDeviceArray:weakself.BLEDeviceArray])
@@ -186,7 +186,7 @@ RCT_EXPORT_METHOD(cancelConnections)
             [weakself.BLEDeviceArray addObject:device];
             weakself.bleDevicesSaveDic[device.uuidBle] = device;
 
-            [self sendEventWithName:@"devices" body:@{@"name": name, @"uuid": peripheral.identifier.UUIDString, @"serial_number": serialnumber}];
+            [self sendEventWithName:@"devices" body:@{@"name": name, @"uuid": peripheral.identifier.UUIDString}];
 
         }
     }];
