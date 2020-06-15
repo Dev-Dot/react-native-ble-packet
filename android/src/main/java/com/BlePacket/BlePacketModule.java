@@ -43,7 +43,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void connectDevice(int index) {
-    String i = String.valueOf(index)
+    String i = String.valueOf(index);
         Log.d("connectDevice", "Call to 'connectDevice' method with param " + i);
     }
 
@@ -57,7 +57,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         Log.d("cancelConnections", "Call to 'cancelConnections' method");
     }
 
-    private void sendEvent(ReactContext reactContext, String eventName, WritableMap params) {
+    private void sendEvent(ReactApplicationContext reactContext, String eventName, WritableMap params) {
         reactContext
             .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
             .emit(eventName, params);
