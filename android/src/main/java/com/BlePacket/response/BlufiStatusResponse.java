@@ -1,6 +1,6 @@
-package blufi.espressif.response;
+package com.BlePacket.response;
 
-import blufi.espressif.params.BlufiParameter;
+import com.BlePacket.params.BlufiParameter;
 
 public class BlufiStatusResponse {
     private int mOpMode = -1;

@@ -1,4 +1,4 @@
-package blufi.espressif;
+package com.BlePacket;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCallback;
@@ -6,9 +6,9 @@ import android.content.Context;
 
 import java.util.List;
 
-import blufi.espressif.params.BlufiConfigureParams;
-import blufi.espressif.response.BlufiStatusResponse;
-import blufi.espressif.response.BlufiVersionResponse;
+import com.BlePacket.params.BlufiConfigureParams;
+import com.BlePacket.response.BlufiStatusResponse;
+import com.BlePacket.response.BlufiVersionResponse;
 
 public class BlufiClient {
     public static final String VERSION = BuildConfig.VERSION_NAME;

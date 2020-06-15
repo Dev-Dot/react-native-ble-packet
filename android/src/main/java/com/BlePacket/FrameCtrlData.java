@@ -1,6 +1,6 @@
-package blufi.espressif;
+package com.BlePacket;
 
-import blufi.espressif.params.BlufiParameter;
+import com.BlePacket.params.BlufiParameter;
 
 class FrameCtrlData {
     private static final int FRAME_CTRL_POSITION_ENCRYPTED = 0;

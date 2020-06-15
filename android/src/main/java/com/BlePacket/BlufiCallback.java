@@ -1,4 +1,4 @@
-package blufi.espressif;
+package com.BlePacket;
 
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -6,9 +6,9 @@ import android.bluetooth.BluetoothGattService;
 
 import java.util.List;
 
-import blufi.espressif.response.BlufiScanResult;
-import blufi.espressif.response.BlufiStatusResponse;
-import blufi.espressif.response.BlufiVersionResponse;
+import com.BlePacket.response.BlufiScanResult;
+import com.BlePacket.response.BlufiStatusResponse;
+import com.BlePacket.response.BlufiVersionResponse;
 
 public abstract class BlufiCallback {
     public static final int STATUS_SUCCESS = 0;

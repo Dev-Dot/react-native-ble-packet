@@ -1,4 +1,4 @@
-package blufi.espressif;
+package com.BlePacket;
 
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothDevice;
@@ -31,15 +31,15 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.crypto.interfaces.DHPublicKey;
 
-import blufi.espressif.params.BlufiConfigureParams;
-import blufi.espressif.params.BlufiParameter;
-import blufi.espressif.response.BlufiScanResult;
-import blufi.espressif.response.BlufiStatusResponse;
-import blufi.espressif.response.BlufiVersionResponse;
-import blufi.espressif.security.BlufiAES;
-import blufi.espressif.security.BlufiCRC;
-import blufi.espressif.security.BlufiDH;
-import blufi.espressif.security.BlufiMD5;
+import com.BlePacket.params.BlufiConfigureParams;
+import com.BlePacket.params.BlufiParameter;
+import com.BlePacket.response.BlufiScanResult;
+import com.BlePacket.response.BlufiStatusResponse;
+import com.BlePacket.response.BlufiVersionResponse;
+import com.BlePacket.security.BlufiAES;
+import com.BlePacket.security.BlufiCRC;
+import com.BlePacket.security.BlufiDH;
+import com.BlePacket.security.BlufiMD5;
 
 class BlufiClientImpl implements BlufiParameter {
     private static final String TAG = "BlufiClientImpl";

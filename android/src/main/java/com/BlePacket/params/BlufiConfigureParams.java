@@ -1,4 +1,4 @@
-package blufi.espressif.params;
+package com.BlePacket.params;
 
 import java.io.Serializable;
 import java.util.Locale;

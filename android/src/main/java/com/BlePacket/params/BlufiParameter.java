@@ -1,4 +1,4 @@
-package blufi.espressif.params;
+package com.BlePacket.params;
 
 import java.util.UUID;
 
