@@ -73,7 +73,7 @@ repositories {
 dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'  // From node_modules
-    implementation project(':blufilibrary')
+    implementation project(':blufi.espressif')
 }
 
 def configureReactNativePom(def pom) {
