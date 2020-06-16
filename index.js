@@ -1,4 +1,4 @@
-import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
+import { NativeModules, NativeEventEmitter } from 'react-native';
 
 const { BlePacket } = NativeModules;
 
@@ -15,11 +15,7 @@ BlePacket.init = function(statusCallback, devicesCallback) {
 
 	BlePacket.statusSub = BlePacketEvents.addListener('status', (data) => {
 		if (statusCallback) {
-			if (Platform.OS === 'ios') {
-				statusCallback(data);
-			} else {
-				statusCallback(data.value);
-			}
+			statusCallback(data);
 		}
 	});
 
