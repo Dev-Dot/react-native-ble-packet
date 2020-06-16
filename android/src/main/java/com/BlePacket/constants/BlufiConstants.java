@@ -2,7 +2,7 @@ package com.BlePacket.constants;
 
 import java.util.UUID;
 
-import com.BlePacket.BlufiParameter;
+import com.BlePacket.params.BlufiParameter;
 
 public final class BlufiConstants {
     // public static final String BLUFI_PREFIX = "BLUFI";
