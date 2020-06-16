@@ -17,7 +17,6 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -30,9 +29,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
-import androidx.core.location.LocationManagerCompat;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,7 +51,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
     private static final int MENU_SETTINGS = 0x01;
 
-    private SwipeRefreshLayout mRefreshLayout;
+    // private SwipeRefreshLayout mRefreshLayout;
 
     // private RecyclerView mRecyclerView;
     private List<ScanResult> mBleList;
@@ -92,7 +88,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         mDeviceMap = new HashMap<>();
         mScanCallback = new ScanCallback();
 
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_PERMISSION);
+        // ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_PERMISSION);
     }
 
     @ReactMethod
@@ -102,16 +98,6 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         if (!adapter.isEnabled() || scanner == null) {
             sendStatus("error");
             return;
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Check location enable
-            LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-            boolean locationEnable = locationManager != null && LocationManagerCompat.isLocationEnabled(locationManager);
-            if (!locationEnable) {
-                sendStatus("error");
-                return;
-            }
         }
 
         mDeviceMap.clear();
@@ -179,15 +165,16 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
             Integer rssi2 = dev2.getRssi();
             return rssi2.compareTo(rssi1);
         });
-        runOnUiThread(() -> {
-            mBleList.clear();
-            mBleList.addAll(devices);
-            mBleAdapter.notifyDataSetChanged();
+        
+        // runOnUiThread(() -> {
+        //     mBleList.clear();
+        //     mBleList.addAll(devices);
+        //     mBleAdapter.notifyDataSetChanged();
 
-            if (over) {
-                mRefreshLayout.setRefreshing(false);
-            }
-        });
+        //     if (over) {
+        //         mRefreshLayout.setRefreshing(false);
+        //     }
+        // });
     }
 
     private void sendStatus(String status) {
@@ -232,11 +219,11 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
         private void onLeScan(ScanResult scanResult) {
             String name = scanResult.getDevice().getName();
-            if (!TextUtils.isEmpty(mBlufiFilter)) {
+            // if (!TextUtils.isEmpty(mBlufiFilter)) {
                 if (name == null || !name.startsWith(mBlufiFilter)) {
                     return;
                 }
-            }
+            // }
 
             sendDevice(scanResult.getDevice().getAddress(), scanResult.getDevice().getName());
 
