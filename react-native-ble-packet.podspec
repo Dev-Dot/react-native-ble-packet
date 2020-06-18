@@ -23,7 +23,6 @@ Pod::Spec.new do |s|
 
   s.dependency "React"
   s.dependency "OpenSSL-Universal"
-  # s.dependency "GRKOpenSSLFramework"
   # ...
   # s.dependency "..."
 end
