@@ -20,8 +20,6 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libBlePacket.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBlePacket.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		A1199C06248FF8EB0040F8B8 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = openssl/openssl/libcrypto.a; sourceTree = "<group>"; };
-		A1199C08248FF9390040F8B8 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = openssl/openssl/libssl.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,8 +52,6 @@
 		A1199C05248FF8EB0040F8B8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				A1199C08248FF9390040F8B8 /* libssl.a */,
-				A1199C06248FF8EB0040F8B8 /* libcrypto.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
