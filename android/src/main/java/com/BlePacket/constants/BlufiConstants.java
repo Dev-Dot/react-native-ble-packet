@@ -5,8 +5,7 @@ import java.util.UUID;
 import com.BlePacket.params.BlufiParameter;
 
 public final class BlufiConstants {
-    // public static final String BLUFI_PREFIX = "BLUFI";
-    public static final String BLUFI_PREFIX = "";
+    public static final String BLUFI_PREFIX = "BLUFI";
 
     public static final UUID UUID_SERVICE = BlufiParameter.UUID_SERVICE;
     public static final UUID UUID_WRITE_CHARACTERISTIC = BlufiParameter.UUID_WRITE_CHARACTERISTIC;

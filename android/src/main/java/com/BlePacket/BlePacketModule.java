@@ -228,11 +228,11 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         private void onLeScan(ScanResult scanResult) {
             String name = scanResult.getDevice().getName();
             
-            sendDevice(scanResult.getDevice().getAddress(), name);
-            
             if (name == null || !name.startsWith(mBlufiFilter)) {
                 return;
             }
+
+            sendDevice(scanResult.getDevice().getAddress(), name);
 
             mDeviceMap.put(scanResult.getDevice().getAddress(), scanResult);
         }
