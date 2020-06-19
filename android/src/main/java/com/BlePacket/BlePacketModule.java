@@ -232,9 +232,15 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
                 return;
             }
 
-            sendDevice(scanResult.getDevice().getAddress(), name);
+            String address = scanResult.getDevice().getAddress();
 
-            mDeviceMap.put(scanResult.getDevice().getAddress(), scanResult);
+            if (mDeviceMap.containsKey(address)) {
+                return;
+            }
+
+            sendDevice(address, name);
+
+            mDeviceMap.put(address, scanResult);
         }
     }
 }
