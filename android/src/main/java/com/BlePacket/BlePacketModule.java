@@ -210,6 +210,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         @Override
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
+            sendStatus("error");
         }
 
         @Override
@@ -226,15 +227,12 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
         private void onLeScan(ScanResult scanResult) {
             String name = scanResult.getDevice().getName();
-
-            sendLog(scanResult.toString());
-            // if (!TextUtils.isEmpty(mBlufiFilter)) {
-                if (name == null || !name.startsWith(mBlufiFilter)) {
-                    return;
-                }
-            // }
-
-            sendDevice(scanResult.getDevice().getAddress(), scanResult.getDevice().getName());
+            
+            sendDevice(scanResult.getDevice().getAddress(), name);
+            
+            if (name == null || !name.startsWith(mBlufiFilter)) {
+                return;
+            }
 
             mDeviceMap.put(scanResult.getDevice().getAddress(), scanResult);
         }
