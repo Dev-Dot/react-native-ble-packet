@@ -177,6 +177,13 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         // });
     }
 
+    private void sendLog(String text) {
+        WritableMap params = Arguments.createMap();
+        params.putString("value", text);
+
+        sendEvent(reactContext, "log", params);
+    }
+
     private void sendStatus(String status) {
         WritableMap params = Arguments.createMap();
         params.putString("value", status);
@@ -219,6 +226,8 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
         private void onLeScan(ScanResult scanResult) {
             String name = scanResult.getDevice().getName();
+
+            sendLog(scanResult.toString());
             // if (!TextUtils.isEmpty(mBlufiFilter)) {
                 if (name == null || !name.startsWith(mBlufiFilter)) {
                     return;
