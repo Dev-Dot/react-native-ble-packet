@@ -197,9 +197,9 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
     private void gotoDevice(BluetoothDevice device) {
         // connection with device
-        Intent intent = new Intent(MainActivity.this, BlufiActivity.class);
-        intent.putExtra(BlufiConstants.KEY_BLE_DEVICE, device);
-        startActivityForResult(intent, REQUEST_BLUFI);
+        // Intent intent = new Intent(MainActivity.this, BlufiActivity.class);
+        // intent.putExtra(BlufiConstants.KEY_BLE_DEVICE, device);
+        // startActivityForResult(intent, REQUEST_BLUFI);
 
 
         if (mBlufiClient != null) {
@@ -207,7 +207,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
             mBlufiClient = null;
         }
 
-        mBlufiClient = new BlufiClient(getApplicationContext(), mDevice);
+        mBlufiClient = new BlufiClient(this, mDevice);
         mBlufiClient.setGattCallback(new GattCallback());
         mBlufiClient.setBlufiCallback(new BlufiCallbackMain());
         mBlufiClient.connect();
@@ -295,18 +295,18 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 switch (newState) {
                     case BluetoothProfile.STATE_CONNECTED:
-                        onGattConnected();
+                        // onGattConnected();
                         sendLog("Connected "+devAddr);
                         break;
                     case BluetoothProfile.STATE_DISCONNECTED:
                         gatt.close();
-                        onGattDisconnected();
+                        // onGattDisconnected();
                         sendLog("Disconnected "+devAddr);
                         break;
                 }
             } else {
                 gatt.close();
-                onGattDisconnected();
+                // onGattDisconnected();
                 sendLog("Disconnect "+devAddr+", status="+status);
             }
         }
@@ -321,7 +321,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
                 sendLog("Set mtu failed, mtu="+mtu+", status="+status);
             }
 
-            onGattServiceCharacteristicDiscovered();
+            // onGattServiceCharacteristicDiscovered();
         }
 
         @Override
@@ -379,7 +379,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
                 client.setPostPackageLengthLimit(20);
                 sendLog("Request mtu "+mtu+" failed");
-                onGattServiceCharacteristicDiscovered();
+                // onGattServiceCharacteristicDiscovered();
             }
         }
 
