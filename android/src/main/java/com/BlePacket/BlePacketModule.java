@@ -45,6 +45,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import com.BlePacket.BlufiCallback;
+import com.BlePacket.BlufiClient;
+import com.BlePacket.params.BlufiConfigureParams;
+import com.BlePacket.response.BlufiScanResult;
+import com.BlePacket.response.BlufiStatusResponse;
+import com.BlePacket.response.BlufiVersionResponse;
+
 public class BlePacketModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
@@ -428,10 +435,9 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         @Override
         public void onDeviceVersionResponse(BlufiClient client, int status, BlufiVersionResponse response) {
             if (status == STATUS_SUCCESS) {
-                updateMessage(String.format("Receive device version: %s", response.getVersionString()),
-                        true);
+                sendLog("Receive device version: "+response.getVersionString());
             } else {
-                updateMessage("Device version error, code=" + status, false);
+                sendLog("Device version error, code=" + status);
             }
 
             // mBlufiVersionBtn.setEnabled(mConnected);
@@ -442,9 +448,9 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
             String dataStr = new String(data);
             String format = "Post data %s %s";
             if (status == STATUS_SUCCESS) {
-                updateMessage(String.format(format, dataStr, "complete"), false);
+                sendLog(String.format(format, dataStr, "complete"));
             } else {
-                updateMessage(String.format(format, dataStr, "failed"), false);
+                sendLog(String.format(format, dataStr, "failed"));
             }
         }
 
@@ -452,15 +458,15 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         public void onReceiveCustomData(BlufiClient client, int status, byte[] data) {
             if (status == STATUS_SUCCESS) {
                 String customStr = new String(data);
-                updateMessage(String.format("Receive custom data:\n%s", customStr), true);
+                sendLog("Receive custom data:\n"+customStr);
             } else {
-                updateMessage("Receive custom data error, code=" + status, false);
+                sendLog("Receive custom data error, code=" + status);
             }
         }
 
         @Override
         public void onError(BlufiClient client, int errCode) {
-            updateMessage(String.format(Locale.ENGLISH, "Receive error code %d", errCode), false);
+            sendLog("Receive error code "+errCode);
         }
     }
 }
