@@ -7,6 +7,8 @@ import com.facebook.react.bridge.Callback;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.Arguments;
+
+import android.content.Context;
 import android.util.Log;
 
 import android.Manifest;
@@ -206,8 +208,8 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
             mBlufiClient.close();
             mBlufiClient = null;
         }
-
-        mBlufiClient = new BlufiClient(this, mDevice);
+        Context context = this;
+        mBlufiClient = new BlufiClient(context, mDevice);
         mBlufiClient.setGattCallback(new GattCallback());
         mBlufiClient.setBlufiCallback(new BlufiCallbackMain());
         mBlufiClient.connect();
