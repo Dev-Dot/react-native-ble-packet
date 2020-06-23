@@ -136,7 +136,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void stopDeviceScan() {
-        stopScan()
+        stopScan();
         sendStatus("stoped");
 
     }
@@ -283,7 +283,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             String devAddr = gatt.getDevice().getAddress();
-            sendLog("onConnectionStateChange addr="+devAddr+" status="+status+", newState="+newState)
+            sendLog("onConnectionStateChange addr="+devAddr+" status="+status+", newState="+newState);
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 switch (newState) {
