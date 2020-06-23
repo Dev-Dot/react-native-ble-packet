@@ -207,7 +207,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
             mBlufiClient = null;
         }
 
-        mBlufiClient = new BlufiClient(this.reactContext, mDevice);
+        mBlufiClient = new BlufiClient(reactContext, device);
         mBlufiClient.setGattCallback(new GattCallback());
         mBlufiClient.setBlufiCallback(new BlufiCallbackMain());
         mBlufiClient.connect();
