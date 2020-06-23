@@ -198,12 +198,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
     }
 
     private void gotoDevice(BluetoothDevice device) {
-        // connection with device
-        // Intent intent = new Intent(MainActivity.this, BlufiActivity.class);
-        // intent.putExtra(BlufiConstants.KEY_BLE_DEVICE, device);
-        // startActivityForResult(intent, REQUEST_BLUFI);
-
-
+        // connect device
         if (mBlufiClient != null) {
             mBlufiClient.close();
             mBlufiClient = null;
@@ -224,6 +219,9 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
         mDeviceMap.clear();
         mBleList.clear();
+
+        // negotiate security
+        mBlufiClient.negotiateSecurity();
     }
 
     private void sendLog(String text) {
