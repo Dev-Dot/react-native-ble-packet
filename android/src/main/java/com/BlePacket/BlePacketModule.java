@@ -219,6 +219,12 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
         mDeviceMap.clear();
         mBleList.clear();
+    }
+
+    private void onNegotiateSecurity() {
+        if (mBlufiClient == null) {
+            sendStatus("error");
+        }
 
         // negotiate security
         mBlufiClient.negotiateSecurity();
@@ -329,7 +335,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
                 sendLog("Set mtu failed, mtu="+mtu+", status="+status);
             }
 
-            // onGattServiceCharacteristicDiscovered();
+            onNegotiateSecurity();
         }
 
         @Override
@@ -386,7 +392,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
                 client.setPostPackageLengthLimit(20);
                 sendLog("Request mtu "+mtu+" failed");
-                // onGattServiceCharacteristicDiscovered();
+                onNegotiateSecurity();
             }
         }
 
