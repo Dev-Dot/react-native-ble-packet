@@ -368,8 +368,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
             sendLog("Discover service and characteristics success");
 
             int mtu = BlufiConstants.DEFAULT_MTU_LENGTH;
-            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q
-                    && Build.MANUFACTURER.toLowerCase().startsWith("samsung")) {
+            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q && Build.MANUFACTURER.toLowerCase().startsWith("samsung")) {
                 mtu = 23;
             }
 
