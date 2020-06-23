@@ -15,6 +15,11 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -51,11 +56,11 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
     private static final int MENU_SETTINGS = 0x01;
 
-    // private SwipeRefreshLayout mRefreshLayout;
+    private BluetoothDevice mDevice;
+    private BlufiClient mBlufiClient;
+    private volatile boolean mConnected;
 
-    // private RecyclerView mRecyclerView;
     private List<ScanResult> mBleList;
-    // private BleAdapter mBleAdapter;
 
     private Map<String, ScanResult> mDeviceMap;
     private ScanCallback mScanCallback;
@@ -80,15 +85,9 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         sendStatus("waiting");
 
         mThreadPool = Executors.newSingleThreadExecutor();
-
         mBleList = new LinkedList<>();
-        // mBleAdapter = new BleAdapter();
-        // mRecyclerView.setAdapter(mBleAdapter);
-
         mDeviceMap = new HashMap<>();
         mScanCallback = new ScanCallback();
-
-        // ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_PERMISSION);
     }
 
     @ReactMethod
@@ -102,7 +101,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
         mDeviceMap.clear();
         mBleList.clear();
-        // mBleAdapter.notifyDataSetChanged();
+
         mBlufiFilter = (String) BlufiConstants.BLUFI_PREFIX;
         mScanStartTime = SystemClock.elapsedRealtime();
 
@@ -131,31 +130,42 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
                 inScanner.stopScan(mScanCallback);
             }
             onIntervalScanUpdate(true);
-            // mLog.d("Scan ble thread is interrupted");
         });
 
     }
 
     @ReactMethod
     public void stopDeviceScan() {
-        sendStatus("scanning");
+        stopScan()
+        sendStatus("stoped");
 
     }
 
     @ReactMethod
     public void connectDevice(int index) {
-        sendStatus("connecting");
+        List<ScanResult> devices = new ArrayList<>(mDeviceMap.values());
+        ScanResult scanResult = devices.get(index);
+
+        if (scanResult != null) {
+            stopScan();
+            gotoDevice(scanResult.getDevice());   
+        } else {
+            sendStatus("error");
+        }
     }
 
     @ReactMethod
     public void connectToWiFi(String ssid, String password) {
-        Log.d("connectToWiFi", "Call to 'connectToWiFi' method with params " + ssid + " and " + password);
+        sendLog("Call to 'connectToWiFi' method with params " + ssid + " and " + password);
         sendStatus("sending-credentials");
     }
 
     @ReactMethod
     public void cancelConnections() {
-        Log.d("cancelConnections", "Call to 'cancelConnections' method");
+        sendLog("Call to 'cancelConnections' method");
+        if (mBlufiClient != null) {
+            mBlufiClient.requestCloseConnection();
+        }
     }
 
     private void onIntervalScanUpdate(boolean over) {
@@ -165,16 +175,38 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
             Integer rssi2 = dev2.getRssi();
             return rssi2.compareTo(rssi1);
         });
-        
-        // runOnUiThread(() -> {
-        //     mBleList.clear();
-        //     mBleList.addAll(devices);
-        //     mBleAdapter.notifyDataSetChanged();
+    }
 
-        //     if (over) {
-        //         mRefreshLayout.setRefreshing(false);
-        //     }
-        // });
+    private void stopScan() {
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        BluetoothLeScanner scanner = adapter.getBluetoothLeScanner();
+        if (scanner != null) {
+            scanner.stopScan(mScanCallback);
+        }
+        if (mUpdateFuture != null) {
+            mUpdateFuture.cancel(true);
+        }
+    }
+
+    private void gotoDevice(BluetoothDevice device) {
+        // connection with device
+        Intent intent = new Intent(MainActivity.this, BlufiActivity.class);
+        intent.putExtra(BlufiConstants.KEY_BLE_DEVICE, device);
+        startActivityForResult(intent, REQUEST_BLUFI);
+
+
+        if (mBlufiClient != null) {
+            mBlufiClient.close();
+            mBlufiClient = null;
+        }
+
+        mBlufiClient = new BlufiClient(getApplicationContext(), mDevice);
+        mBlufiClient.setGattCallback(new GattCallback());
+        mBlufiClient.setBlufiCallback(new BlufiCallbackMain());
+        mBlufiClient.connect();
+
+        mDeviceMap.clear();
+        mBleList.clear();
     }
 
     private void sendLog(String text) {
@@ -241,6 +273,194 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
             sendDevice(address, name);
 
             mDeviceMap.put(address, scanResult);
+        }
+    }
+
+    /**
+     * mBlufiClient call onCharacteristicWrite and onCharacteristicChanged is required
+     */
+    private class GattCallback extends BluetoothGattCallback {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            String devAddr = gatt.getDevice().getAddress();
+            sendLog("onConnectionStateChange addr="+devAddr+" status="+status+", newState="+newState)
+
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                switch (newState) {
+                    case BluetoothProfile.STATE_CONNECTED:
+                        onGattConnected();
+                        sendLog("Connected "+devAddr);
+                        break;
+                    case BluetoothProfile.STATE_DISCONNECTED:
+                        gatt.close();
+                        onGattDisconnected();
+                        sendLog("Disconnected "+devAddr);
+                        break;
+                }
+            } else {
+                gatt.close();
+                onGattDisconnected();
+                sendLog("Disconnect "+devAddr+", status="+status);
+            }
+        }
+
+        @Override
+        public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
+            sendLog("onMtuChanged status="+status+", mtu="+mtu);
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                sendLog("Set mtu complete, mtu="+mtu);
+            } else {
+                mBlufiClient.setPostPackageLengthLimit(20);
+                sendLog("Set mtu failed, mtu="+mtu+", status="+status);
+            }
+
+            onGattServiceCharacteristicDiscovered();
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            sendLog("onServicesDiscovered status="+status);
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                gatt.disconnect();
+                sendLog("Discover services error status "+status);
+            }
+        }
+
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                gatt.disconnect();
+                sendLog("WriteChar error status "+status);
+            }
+        }
+    }
+
+    private class BlufiCallbackMain extends BlufiCallback {
+        @Override
+        public void onGattPrepared(BlufiClient client, BluetoothGatt gatt, BluetoothGattService service,
+                                   BluetoothGattCharacteristic writeChar, BluetoothGattCharacteristic notifyChar) {
+            if (service == null) {
+                sendLog("Discover service failed");
+                gatt.disconnect();
+                sendLog("Discover service failed");
+                return;
+            }
+            if (writeChar == null) {
+                sendLog("Get write characteristic failed");
+                gatt.disconnect();
+                sendLog("Get write characteristic failed");
+                return;
+            }
+            if (notifyChar == null) {
+                sendLog("Get notification characteristic failed");
+                gatt.disconnect();
+                sendLog("Get notification characteristic failed");
+                return;
+            }
+
+            sendLog("Discover service and characteristics success");
+
+            int mtu = BlufiConstants.DEFAULT_MTU_LENGTH;
+            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q
+                    && Build.MANUFACTURER.toLowerCase().startsWith("samsung")) {
+                mtu = 23;
+            }
+
+            boolean requestMtu = gatt.requestMtu(mtu);
+            if (!requestMtu) {
+                sendLog("Request mtu failed");
+
+                client.setPostPackageLengthLimit(20);
+                sendLog("Request mtu "+mtu+" failed");
+                onGattServiceCharacteristicDiscovered();
+            }
+        }
+
+        @Override
+        public void onNegotiateSecurityResult(BlufiClient client, int status) {
+            if (status == STATUS_SUCCESS) {
+                sendLog("Negotiate security complete");
+            } else {
+                sendLog("Negotiate security failed， code=" + status);
+            }
+
+            // mBlufiSecurityBtn.setEnabled(mConnected);
+        }
+
+        @Override
+        public void onConfigureResult(BlufiClient client, int status) {
+            if (status == STATUS_SUCCESS) {
+                sendLog("Post configure params complete");
+            } else {
+                sendLog("Post configure params failed, code=" + status);
+            }
+
+            // mBlufiConfigureBtn.setEnabled(mConnected);
+        }
+
+        @Override
+        public void onDeviceStatusResponse(BlufiClient client, int status, BlufiStatusResponse response) {
+            if (status == STATUS_SUCCESS) {
+                sendLog("Receive device status response:\n"+response.generateValidInfo());
+            } else {
+                sendLog("Device status response error, code=" + status);
+            }
+
+            // mBlufiDeviceStatusBtn.setEnabled(mConnected);
+        }
+
+        @Override
+        public void onDeviceScanResult(BlufiClient client, int status, List<BlufiScanResult> results) {
+            if (status == STATUS_SUCCESS) {
+                StringBuilder msg = new StringBuilder();
+                msg.append("Receive device scan result:\n");
+                for (BlufiScanResult scanResult : results) {
+                    msg.append(scanResult.toString()).append("\n");
+                }
+                sendLog(msg.toString());
+            } else {
+                sendLog("Device scan result error, code=" + status);
+            }
+
+            // mBlufiDeviceScanBtn.setEnabled(mConnected);
+        }
+
+        @Override
+        public void onDeviceVersionResponse(BlufiClient client, int status, BlufiVersionResponse response) {
+            if (status == STATUS_SUCCESS) {
+                updateMessage(String.format("Receive device version: %s", response.getVersionString()),
+                        true);
+            } else {
+                updateMessage("Device version error, code=" + status, false);
+            }
+
+            // mBlufiVersionBtn.setEnabled(mConnected);
+        }
+
+        @Override
+        public void onPostCustomDataResult(BlufiClient client, int status, byte[] data) {
+            String dataStr = new String(data);
+            String format = "Post data %s %s";
+            if (status == STATUS_SUCCESS) {
+                updateMessage(String.format(format, dataStr, "complete"), false);
+            } else {
+                updateMessage(String.format(format, dataStr, "failed"), false);
+            }
+        }
+
+        @Override
+        public void onReceiveCustomData(BlufiClient client, int status, byte[] data) {
+            if (status == STATUS_SUCCESS) {
+                String customStr = new String(data);
+                updateMessage(String.format("Receive custom data:\n%s", customStr), true);
+            } else {
+                updateMessage("Receive custom data error, code=" + status, false);
+            }
+        }
+
+        @Override
+        public void onError(BlufiClient client, int errCode) {
+            updateMessage(String.format(Locale.ENGLISH, "Receive error code %d", errCode), false);
         }
     }
 }
