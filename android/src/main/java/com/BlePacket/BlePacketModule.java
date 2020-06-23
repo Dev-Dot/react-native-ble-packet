@@ -421,6 +421,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         public void onConfigureResult(BlufiClient client, int status) {
             if (status == STATUS_SUCCESS) {
                 sendLog("Post configure params complete");
+                sendStatus("done");
             } else {
                 sendLog("Post configure params failed, code=" + status);
             }
