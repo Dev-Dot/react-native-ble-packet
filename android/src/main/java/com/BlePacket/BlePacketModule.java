@@ -48,6 +48,7 @@ import java.util.concurrent.Future;
 import com.BlePacket.BlufiCallback;
 import com.BlePacket.BlufiClient;
 import com.BlePacket.params.BlufiConfigureParams;
+import com.BlePacket.params.BlufiParameter;
 import com.BlePacket.response.BlufiScanResult;
 import com.BlePacket.response.BlufiStatusResponse;
 import com.BlePacket.response.BlufiVersionResponse;
@@ -167,6 +168,14 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
     public void connectToWiFi(String ssid, String password) {
         sendLog("Call to 'connectToWiFi' method with params " + ssid + " and " + password);
         sendStatus("sending-credentials");
+
+        final BlufiConfigureParams params = new BlufiConfigureParams();
+        int deviceMode = BlufiParameter.OP_MODE_STA;
+        params.setOpMode(deviceMode);
+        params.setStaSSIDBytes(ssid.getBytes());
+        params.setStaPassword(password);
+
+        mBlufiClient.configure(params);
     }
 
     @ReactMethod
@@ -400,6 +409,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         public void onNegotiateSecurityResult(BlufiClient client, int status) {
             if (status == STATUS_SUCCESS) {
                 sendLog("Negotiate security complete");
+                sendStatus("connected");
             } else {
                 sendLog("Negotiate security failed， code=" + status);
             }
