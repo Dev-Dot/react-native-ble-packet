@@ -150,6 +150,8 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void connectDevice(int index) {
+        sendStatus("connecting");
+
         List<ScanResult> devices = new ArrayList<>(mDeviceMap.values());
         ScanResult scanResult = devices.get(index);
 
@@ -208,11 +210,11 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         }
 
         if (reactContext == null) {
-            sendLog("reactContext is null")
+            sendLog("reactContext is null");
         }
 
         if (device == null) {
-            sendLog("device is null")
+            sendLog("device is null");
         }
 
         mBlufiClient = new BlufiClient(reactContext, device);
