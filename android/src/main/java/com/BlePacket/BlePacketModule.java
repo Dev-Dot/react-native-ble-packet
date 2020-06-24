@@ -166,7 +166,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void connectToWiFi(String ssid, String password) {
-        sendLog("Call to 'connectToWiFi' method with params " + ssid + " and " + password);
+        // sendLog("Call to 'connectToWiFi' method with params " + ssid + " and " + password);
         sendStatus("sending-credentials");
 
         final BlufiConfigureParams params = new BlufiConfigureParams();
@@ -180,7 +180,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void cancelConnections() {
-        sendLog("Call to 'cancelConnections' method");
+        // sendLog("Call to 'cancelConnections' method");
         if (mBlufiClient != null) {
             mBlufiClient.requestCloseConnection();
         }
@@ -213,12 +213,9 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
             mBlufiClient = null;
         }
 
-        if (reactContext == null) {
-            sendLog("reactContext is null");
-        }
-
-        if (device == null) {
-            sendLog("device is null");
+        if (reactContext == null || device == null) {
+            sendStatus("error");
+            // sendLog("reactContext or device is null");
         }
 
         mBlufiClient = new BlufiClient(reactContext, device);
@@ -239,12 +236,12 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         mBlufiClient.negotiateSecurity();
     }
 
-    private void sendLog(String text) {
-        WritableMap params = Arguments.createMap();
-        params.putString("value", text);
+    // private void sendLog(String text) {
+    //     WritableMap params = Arguments.createMap();
+    //     params.putString("value", text);
 
-        sendEvent(reactContext, "log", params);
-    }
+    //     sendEvent(reactContext, "log", params);
+    // }
 
     private void sendStatus(String status) {
         WritableMap params = Arguments.createMap();
@@ -313,35 +310,33 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             String devAddr = gatt.getDevice().getAddress();
-            sendLog("onConnectionStateChange addr="+devAddr+" status="+status+", newState="+newState);
+            // sendLog("onConnectionStateChange addr="+devAddr+" status="+status+", newState="+newState);
 
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 switch (newState) {
                     case BluetoothProfile.STATE_CONNECTED:
-                        // onGattConnected();
-                        sendLog("Connected "+devAddr);
+                        // sendLog("Connected "+devAddr);
                         break;
                     case BluetoothProfile.STATE_DISCONNECTED:
                         gatt.close();
-                        // onGattDisconnected();
-                        sendLog("Disconnected "+devAddr);
+                        // sendLog("Disconnected "+devAddr);
                         break;
                 }
             } else {
                 gatt.close();
-                // onGattDisconnected();
-                sendLog("Disconnect "+devAddr+", status="+status);
+                // sendLog("Disconnect "+devAddr+", status="+status);
             }
         }
 
         @Override
         public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
-            sendLog("onMtuChanged status="+status+", mtu="+mtu);
+            // sendLog("onMtuChanged status="+status+", mtu="+mtu);
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                sendLog("Set mtu complete, mtu="+mtu);
+                // sendLog("Set mtu complete, mtu="+mtu);
             } else {
                 mBlufiClient.setPostPackageLengthLimit(20);
-                sendLog("Set mtu failed, mtu="+mtu+", status="+status);
+                // sendLog("Set mtu failed, mtu="+mtu+", status="+status);
+                sendStatus("error");
             }
 
             onNegotiateSecurity();
@@ -349,10 +344,10 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            sendLog("onServicesDiscovered status="+status);
+            // sendLog("onServicesDiscovered status="+status);
             if (status != BluetoothGatt.GATT_SUCCESS) {
                 gatt.disconnect();
-                sendLog("Discover services error status "+status);
+                // sendLog("Discover services error status "+status);
             }
         }
 
@@ -360,7 +355,7 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             if (status != BluetoothGatt.GATT_SUCCESS) {
                 gatt.disconnect();
-                sendLog("WriteChar error status "+status);
+                // sendLog("WriteChar error status "+status);
             }
         }
     }
@@ -370,25 +365,25 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         public void onGattPrepared(BlufiClient client, BluetoothGatt gatt, BluetoothGattService service,
                                    BluetoothGattCharacteristic writeChar, BluetoothGattCharacteristic notifyChar) {
             if (service == null) {
-                sendLog("Discover service failed");
+                // sendLog("Discover service failed");
                 gatt.disconnect();
-                sendLog("Discover service failed");
+                sendStatus("error");
                 return;
             }
             if (writeChar == null) {
-                sendLog("Get write characteristic failed");
+                // sendLog("Get write characteristic failed");
                 gatt.disconnect();
-                sendLog("Get write characteristic failed");
+                sendStatus("error");
                 return;
             }
             if (notifyChar == null) {
-                sendLog("Get notification characteristic failed");
+                // sendLog("Get notification characteristic failed");
                 gatt.disconnect();
-                sendLog("Get notification characteristic failed");
+                sendStatus("error");
                 return;
             }
 
-            sendLog("Discover service and characteristics success");
+            // sendLog("Discover service and characteristics success");
 
             int mtu = BlufiConstants.DEFAULT_MTU_LENGTH;
             if (Build.VERSION.SDK_INT == Build.VERSION_CODES.M && Build.MANUFACTURER.toLowerCase().startsWith("samsung")) {
@@ -397,10 +392,8 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
 
             boolean requestMtu = gatt.requestMtu(mtu);
             if (!requestMtu) {
-                sendLog("Request mtu failed");
-
                 client.setPostPackageLengthLimit(20);
-                sendLog("Request mtu "+mtu+" failed");
+                // sendLog("Request mtu "+mtu+" failed");
                 onNegotiateSecurity();
             }
         }
@@ -408,36 +401,33 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         @Override
         public void onNegotiateSecurityResult(BlufiClient client, int status) {
             if (status == STATUS_SUCCESS) {
-                sendLog("Negotiate security complete");
+                // sendLog("Negotiate security complete");
                 sendStatus("connected");
             } else {
-                sendLog("Negotiate security failed， code=" + status);
+                // sendLog("Negotiate security failed， code=" + status);
+                sendStatus("error");
             }
-
-            // mBlufiSecurityBtn.setEnabled(mConnected);
         }
 
         @Override
         public void onConfigureResult(BlufiClient client, int status) {
             if (status == STATUS_SUCCESS) {
-                sendLog("Post configure params complete");
+                // sendLog("Post configure params complete");
                 sendStatus("done");
             } else {
-                sendLog("Post configure params failed, code=" + status);
+                // sendLog("Post configure params failed, code=" + status);
+                sendStatus("error");
             }
-
-            // mBlufiConfigureBtn.setEnabled(mConnected);
         }
 
         @Override
         public void onDeviceStatusResponse(BlufiClient client, int status, BlufiStatusResponse response) {
             if (status == STATUS_SUCCESS) {
-                sendLog("Receive device status response:\n"+response.generateValidInfo());
+                // sendLog("Receive device status response:\n"+response.generateValidInfo());
             } else {
-                sendLog("Device status response error, code=" + status);
+                // sendLog("Device status response error, code=" + status);
+                sendStatus("error");
             }
-
-            // mBlufiDeviceStatusBtn.setEnabled(mConnected);
         }
 
         @Override
@@ -448,23 +438,21 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
                 for (BlufiScanResult scanResult : results) {
                     msg.append(scanResult.toString()).append("\n");
                 }
-                sendLog(msg.toString());
+                // sendLog(msg.toString());
             } else {
-                sendLog("Device scan result error, code=" + status);
+                // sendLog("Device scan result error, code=" + status);
+                sendStatus("error");
             }
-
-            // mBlufiDeviceScanBtn.setEnabled(mConnected);
         }
 
         @Override
         public void onDeviceVersionResponse(BlufiClient client, int status, BlufiVersionResponse response) {
             if (status == STATUS_SUCCESS) {
-                sendLog("Receive device version: "+response.getVersionString());
+                // sendLog("Receive device version: "+response.getVersionString());
             } else {
-                sendLog("Device version error, code=" + status);
+                // sendLog("Device version error, code=" + status);
+                sendStatus("error");
             }
-
-            // mBlufiVersionBtn.setEnabled(mConnected);
         }
 
         @Override
@@ -472,9 +460,10 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
             String dataStr = new String(data);
             String format = "Post data %s %s";
             if (status == STATUS_SUCCESS) {
-                sendLog(String.format(format, dataStr, "complete"));
+                // sendLog(String.format(format, dataStr, "complete"));
             } else {
-                sendLog(String.format(format, dataStr, "failed"));
+                // sendLog(String.format(format, dataStr, "failed"));
+                sendStatus("error");
             }
         }
 
@@ -482,15 +471,17 @@ public class BlePacketModule extends ReactContextBaseJavaModule {
         public void onReceiveCustomData(BlufiClient client, int status, byte[] data) {
             if (status == STATUS_SUCCESS) {
                 String customStr = new String(data);
-                sendLog("Receive custom data:\n"+customStr);
+                // sendLog("Receive custom data:\n"+customStr);
             } else {
-                sendLog("Receive custom data error, code=" + status);
+                // sendLog("Receive custom data error, code=" + status);
+                sendStatus("error");
             }
         }
 
         @Override
         public void onError(BlufiClient client, int errCode) {
-            sendLog("Receive error code "+errCode);
+            // sendLog("Receive error code "+errCode);
+            sendStatus("error");
         }
     }
 }

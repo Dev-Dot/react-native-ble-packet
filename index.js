@@ -13,9 +13,9 @@ BlePacket.init = function(statusCallback, devicesCallback, logCallback) {
 		BlePacket.devicesSub.remove();
 	}
 
-	if (BlePacket.logSub) {
-		BlePacket.logSub.remove();
-	}
+	// if (BlePacket.logSub) {
+	// 	BlePacket.logSub.remove();
+	// }
 
 	BlePacket.statusSub = BlePacketEvents.addListener('status', (data) => {
 		if (statusCallback) {
@@ -29,11 +29,11 @@ BlePacket.init = function(statusCallback, devicesCallback, logCallback) {
 		}
 	});
 
-	BlePacket.logSub = BlePacketEvents.addListener('log', (data) => {
-		if (logCallback) {
-			logCallback(data);
-		}
-	});
+	// BlePacket.logSub = BlePacketEvents.addListener('log', (data) => {
+	// 	if (logCallback) {
+	// 		logCallback(data);
+	// 	}
+	// });
 
 	BlePacket.setup();
 };
